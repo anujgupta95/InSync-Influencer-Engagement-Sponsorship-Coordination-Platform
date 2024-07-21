@@ -12,7 +12,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String, nullable=False)
     name = db.Column(db.String, nullable=False)
     active = db.Column(db.Boolean)
-    flagged = db.Column(db.Boolean, default=False)
+    flagged = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=dt.now())
     updated_at = db.Column(db.DateTime, nullable=False, default=dt.now(), onupdate=dt.now())
     roles = db.relationship('Role', secondary = 'user_roles', backref='users')
