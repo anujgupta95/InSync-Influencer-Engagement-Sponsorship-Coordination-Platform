@@ -27,9 +27,6 @@ const Navbar = {
                   <li ><router-link to="/profile" class="dropdown-item"> Profile </router-link></li>
                   <li><router-link to="/logout" class="dropdown-item"> Logout - Vue </router-link></li>
                   <li><hr class="dropdown-divider" /></li>
-                  <li>
-                    <a :href="logoutURL" class="dropdown-item"> Logout </a>
-                  </li>
                 </ul>
               </li>
               <li class="nav-item">
@@ -61,7 +58,7 @@ const Navbar = {
                     <router-link to="/profile" class="dropdown-item"> Profile </router-link>
                   </li>
                   <li class="nav-item">
-                    <a :href="logoutURL" class="dropdown-item"> Logout </a>
+                    <router-link to="/logout" class="dropdown-item"> Logout </router-link>
                   </li>
                 </ul>
               </li>
@@ -74,7 +71,6 @@ const Navbar = {
   data() {
     return {
       search: "",
-      logoutURL: window.location.origin + "/logout",
     };
   },
   computed: {

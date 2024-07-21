@@ -8,31 +8,6 @@ from env import ALL_ROLES
 
 api = Api(prefix='/api')
 
-# Define a base parser for common fields
-# def campaign_parser():
-#     parser = reqparse.RequestParser()
-#     parser.add_argument('name', type=str, required=True, help='Name cannot be blank')
-#     parser.add_argument('description', type=str)
-#     parser.add_argument('start_date', type=str, required=True, help='Start date cannot be blank')
-#     parser.add_argument('end_date', type=str, required=True, help='End date cannot be blank')
-#     parser.add_argument('budget', type=float, required=True, help='Budget cannot be blank')
-#     parser.add_argument('visibility', type=str)
-#     parser.add_argument('goals', type=str)
-#     return parser
-
-# def ad_request_parser():
-#     parser = reqparse.RequestParser()
-#     parser.add_argument('campaign_id', type=int, required=True, help='Campaign ID cannot be blank')
-#     parser.add_argument('influencer_id', type=int, required=True, help='Influencer ID cannot be blank')
-#     parser.add_argument('messages', type=str)
-#     parser.add_argument('requirements', type=str)
-#     parser.add_argument('payment_amount', type=float, required=True, help='Payment amount cannot be blank')
-#     parser.add_argument('revised_payment_amount', type=float)
-#     parser.add_argument('negotiation_notes', type=str)
-#     parser.add_argument('status', type=str)
-#     return parser
-
-
 class CampaignResource(Resource):
     
     parser = reqparse.RequestParser()
