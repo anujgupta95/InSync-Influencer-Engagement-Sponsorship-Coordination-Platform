@@ -46,13 +46,13 @@ const Navbar = {
               </button>
             </form>
             <ul class="navbar-nav mb-2 mb-lg-0">
-              <li class="nav-item" v-if="!computedLoggedIn">
+              <li class="nav-item" v-if="!isLoggedIn">
                 <router-link to="/login" class="nav-link"> Login </router-link>
               </li>
-              <li class="nav-item" v-if="!computedLoggedIn">
+              <li class="nav-item" v-if="!isLoggedIn">
                 <router-link to="/signup" class="nav-link"> Sign Up </router-link>
               </li>
-              <li class="nav-item dropdown" v-if="computedLoggedIn" style="margin-left: 10px">
+              <li class="nav-item dropdown" v-if="isLoggedIn" style="margin-left: 10px">
                 <a class="nav-link dropdown-center" data-bs-toggle="dropdown" role="button" ria-expanded="false">
                   <i class="bi bi-person-circle" style="font-size:2rem;"></i>
                 </a>
@@ -78,9 +78,15 @@ const Navbar = {
     };
   },
   computed: {
-    computedLoggedIn() {
-      return store.state.loggedIn;
+    isLoggedIn() {
+      return store.getters.isLoggedIn;
     },
+    userRole() {
+      return store.getters.userRole;
+    },
+  },
+  mounted() {
+    store.dispatch("checkLogin");
   },
 };
 

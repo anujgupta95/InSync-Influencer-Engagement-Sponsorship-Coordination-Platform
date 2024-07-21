@@ -50,38 +50,33 @@ const Login = {
     return {
       email: "",
       password: "",
-      // error: "",
       showPassword: false,
     };
   },
-  // computed: {
-  //   message() {
-  //     return this.$route.query.message || "";
-  //   },
-  // },
   methods: {
-    submitInfo: async function () {
+    async submitInfo() {
       if (!this.email || !this.password) {
         return false;
       }
-      // this.error = "";
-      const url = window.location.origin;
-      const res = await fetch(url + "/login", {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify({ email: this.email, password: this.password }),
-      });
+      try {
+        const res = await fetch(window.location.origin + "/login", {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify({ email: this.email, password: this.password }),
+        });
 
-      const data = await res.json();
-      if (res.ok) {
-        store.commit("setLogIn");
-        router.push("/profile");
-        window.triggerToast("Login Successful!", "success");
-      } else {
-        // this.error = data.response.errors[0];
-        window.triggerToast(data.response.errors[0], "warning");
+        const data = await res.json();
+        if (res.ok) {
+          store.commit("setLogIn");
+          router.push("/profile");
+          window.triggerToast("Login Successful!", "success");
+        } else {
+          window.triggerToast(data.response.errors[0], "warning");
+        }
+      } catch (error) {
+        window.triggerToast("An error occurred. Please try again.", "error");
       }
     },
     togglePasswordVisibility() {

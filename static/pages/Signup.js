@@ -93,37 +93,43 @@ const Signup = {
     },
   },
   methods: {
-    submitInfo: async function () {
+    async submitInfo() {
       if (
-        !this.email |
-        !this.name |
-        !this.password |
-        !this.cnf_password |
-        (this.password < 4) |
-        (this.password != this.cnf_password)
+        !this.email ||
+        !this.name ||
+        !this.password ||
+        !this.cnf_password ||
+        this.password.length < 4 ||
+        this.password !== this.cnf_password
       ) {
         return false;
       }
+
       const url = window.location.origin;
-      const res = await fetch(url + "/signup", {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify({
-          email: this.email,
-          password: this.password,
-          name: this.name,
-          role: this.role,
-        }),
-        credentials: "same-origin",
-      });
-      const data = await res.json();
-      if (data.error) {
-        window.triggerToast(data.error, "warning");
-      } else if (data.message) {
-        router.push("/login");
-        window.triggerToast("Account created successfully", "success");
+      try {
+        const res = await fetch(url + "/signup", {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify({
+            email: this.email,
+            password: this.password,
+            name: this.name,
+            role: this.role,
+          }),
+          credentials: "same-origin",
+        });
+
+        const data = await res.json();
+        if (data.error) {
+          window.triggerToast(data.error, "warning");
+        } else if (data.message) {
+          router.push("/login");
+          window.triggerToast("Account created successfully", "success");
+        }
+      } catch (error) {
+        window.triggerToast("Signup failed. Please try again.", "danger");
       }
     },
     togglePasswordVisibility() {

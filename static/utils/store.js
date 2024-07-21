@@ -6,15 +6,34 @@ const store = new Vuex.Store({
   },
 
   mutations: {
-    setLogIn(state) {
+    setLogIn(state, role) {
       state.loggedIn = true;
+      state.role = role;
     },
     logout(state) {
       state.loggedIn = false;
+      state.role = "";
     },
-    setRole(state, role) {
-      state.role = role;
+  },
+  actions: {
+    async checkLogin({ commit }) {
+      try {
+        const res = await fetch(window.location.origin + "/check_login");
+        const data = await res.json();
+        if (data.loggedIn) {
+          commit("setLogIn", data.role);
+        } else {
+          commit("logout");
+        }
+      } catch {
+        commit("logout");
+      }
     },
+  },
+
+  getters: {
+    isLoggedIn: (state) => state.loggedIn,
+    userRole: (state) => state.role,
   },
 });
 

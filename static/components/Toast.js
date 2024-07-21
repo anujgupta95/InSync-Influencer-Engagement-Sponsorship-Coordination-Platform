@@ -42,7 +42,7 @@ const Toast = {
     window.triggerToast = this.triggerToast;
   },
   methods: {
-    triggerToast(message = "", variant = "") {
+    triggerToast(message = "", variant = "success") {
       // Check if there is already an active toast instance
       this.toast = new bootstrap.Toast(document.getElementById("liveToast"));
       // if (window.activeToast) {

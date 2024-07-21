@@ -12,12 +12,13 @@ const Home = {
     <p class="mt-4">Lorem ipsum dolor sit amet consectetur adipisicing elit. Officiis, quas! Cum deleniti eveniet corrupti pariatur assumenda voluptatum quam dolore tempore reprehenderit doloribus, aperiam perspiciatis nulla consequuntur facere fugiat magnam provident.</p>
   </div>`,
   async mounted() {
-    const res = await fetch(window.location.origin + "/check_login");
     try {
+      const res = await fetch(window.location.origin + "/check_login");
       const data = await res.json();
-      console.log(data);
-      this.loggedIn = true;
-    } catch {
+      // console.log(data);
+      this.loggedIn = data.loggedIn;
+    } catch (error) {
+      window.triggerToast("Error fetching login status: " + error, "danger");
       this.loggedIn = false;
     }
   },

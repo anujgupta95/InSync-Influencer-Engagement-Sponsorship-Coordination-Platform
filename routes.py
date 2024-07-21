@@ -23,9 +23,14 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore):
     
     @app.route('/check_login')
     @auth_required('session', 'token')
-    def isLogin():
-        # print(current_user.id, current_user.roles[0].name)
-        return jsonify({"message":"User is Logged in"})
+    def is_login():
+        return jsonify({
+            "loggedIn": True,
+            "id": current_user.id,
+            "roles": current_user.roles[0].name,
+            "message": "User is Logged in"
+        })
+
 
 
     @app.route('/signup', methods=["POST"])
@@ -62,18 +67,6 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore):
             return jsonify({"error":"error while creating user"}), 409
         
         return jsonify({"message":"User created"}), 200
-    
-    # @app.route('/profile')
-    # @auth_required('session', 'token')
-    # def profile():
-    #     return render_template_string(
-    #         '''
-    #             <h1> Hello {{current_user.name}}</h1>
-    #             <p> Email : {{current_user.email}} </p>
-    #             <p> Roles : {{current_user.roles[0].name}} </p>
-    #             <a href='/logout'> Logout </a>
-    #         '''
-    #     )
     
     @app.route('/sponsor/dashboard')
     @auth_required('session', 'token')

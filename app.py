@@ -13,6 +13,10 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
     # app.config['SQLALCHEMY_ECHO'] = True  # Enable SQLAlchemy logging
 
+    # Security configurations
+    app.config['SECURITY_REGISTERABLE'] = True
+    app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
+
     db.init_app(app)
 
     with app.app_context():
