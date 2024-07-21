@@ -16,6 +16,7 @@ def create_app():
     # Security configurations
     app.config['SECURITY_REGISTERABLE'] = True
     app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
+    app.config['SECURITY_TRACKABLE'] = True
 
     db.init_app(app)
 

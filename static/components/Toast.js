@@ -15,15 +15,21 @@ const Toast = {
             </div>
         </div>   
     `,
-  props: {
-    message: {
-      type: String,
-      default: "Hello, world! This is a toast message.",
-    },
-    variant: {
-      type: String,
-      default: "success",
-    },
+  // props: {
+  //   message: {
+  //     type: String,
+  //     default: "Hello, world! This is a toast message.",
+  //   },
+  //   variant: {
+  //     type: String,
+  //     default: "variant",
+  //   },
+  // },
+  data() {
+    return {
+      message: "",
+      variant: "",
+    };
   },
   computed: {
     toastClass() {

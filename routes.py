@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, render_template_string, render_template, request
-from flask_security import current_user, auth_required, roles_required, SQLAlchemyUserDatastore
+from flask_security import current_user, auth_required, roles_required, SQLAlchemyUserDatastore, roles_accepted
 from flask_security.utils import hash_password
 from extensions import db
 from env import PUBLIC_ROLES
@@ -30,7 +30,6 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore):
             "roles": current_user.roles[0].name,
             "message": "User is Logged in"
         })
-
 
 
     @app.route('/signup', methods=["POST"])
