@@ -1,7 +1,7 @@
 from flask_restful import Resource, Api, reqparse, fields, marshal_with
 from flask_security import auth_required, current_user, roles_required
-from flask import request
-from models import Campaign, AdRequest, User
+from flask import request, jsonify
+from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData
 from extensions import db
 from datetime import date
 from env import ALL_ROLES
@@ -204,38 +204,77 @@ class AdRequestResource(Resource):
 class UserResource(Resource):
 
     parser = reqparse.RequestParser()
-    user_fields = {
-        'id': fields.Integer,
-        'email': fields.String,
-        'name': fields.String,
-        'roles' : fields.List(fields.String),
-        'campaigns' : fields.List(fields.String)
-    }
+    parser.add_argument('name', type=str, required=True, help='Name cannot be blank')
+    # parser.add_argument('role', type=str, required=True, help='Role cannot be null')
+    parser.add_argument('request_role_update', type=str, help='Requested role change')
 
-    parser.add_argument('email', type=str)
-    parser.add_argument('request_role_change', type=str, help='Requested role change')
+    # Define optional nested structures for role-specific data
+    parser.add_argument('sponsor_data', type=dict, location='json')
+    parser.add_argument('influencer_data', type=dict, location='json')
 
     @auth_required()
-    @marshal_with(user_fields)
-    def get(self):
+    def get(self, user_id=None):
         if not current_user.is_authenticated:
-            return {'message': 'Please login first'}, 401
-        user = User.query.get(current_user.id)
+            return {'error': 'Please login first'}, 401
+        
+        if user_id is None:
+            user = User.query.get(current_user.id)
+        else:
+            user = User.query.get(user_id)
         if not user:
-            return {'message': 'User not found'}, 404
-        return user
+            return {'error': 'User not found'}, 404
+        
+        user_dict = {
+            'id': user.id,
+            'email': user.email,
+            'name': user.name,
+            'role': user.roles[0].name,
+            'campaigns': [campaign.name for campaign in user.campaigns],
+            'sponsor_data': user.sponsor_data.to_dict() if user.sponsor_data else None,
+            'influencer_data': user.influencer_data.to_dict() if user.influencer_data else None
+        }
+        return jsonify(user_dict)
 
     @auth_required()
-    def put(self):
+    def put(self, user_id=None):
         args = self.parser.parse_args()
 
-        if args.name:
-            current_user.name = args.name
-
-        if args.request_role_change and args.request_role_change in ['sponsor', 'influencer']:
-            current_user.active = False
-            current_user.roles = []
+        if user_id is None:
+            user = User.query.get(current_user.id)
+        else:
+            user = User.query.get(user_id)
         
+        if not user:
+            return {'error': 'User not found'}, 404
+
+        if args.name:
+            user.name = args.name
+
+        if args.request_role_update and args.request_role_update == 'sponsor':
+            if 'sponsor' in [role.name for role in user.roles]:
+                return {'error': 'You are already a sponsor'}, 400
+            
+            user.active = False
+            user.roles = [Role.query.filter_by(name='sponsor').first()]
+        
+        if args.sponsor_data:
+            if user.sponsor_data:
+                user.sponsor_data.company_name = args.sponsor_data.get('company_name')
+                user.sponsor_data.industry = args.sponsor_data.get('industry')
+                user.sponsor_data.budget = args.sponsor_data.get('budget')
+            else:
+                new_sponsor_data = SponsorData(**args.sponsor_data, user=user)
+                db.session.add(new_sponsor_data)
+
+        if args.influencer_data:
+            if user.influencer_data:
+                user.influencer_data.category = args.influencer_data.get('category')
+                user.influencer_data.niche = args.influencer_data.get('niche')
+                user.influencer_data.followers = args.influencer_data.get('followers')
+            else:
+                new_influencer_data = InfluencerData(**args.influencer_data, user=user)
+                db.session.add(new_influencer_data)
+
         db.session.commit()
         return {'message': 'User details updated successfully'}, 200 
 
@@ -287,5 +326,5 @@ class AdminResource(Resource):
 
 api.add_resource(CampaignResource, '/campaign')
 api.add_resource(AdRequestResource, '/ad_request', '/ad_request/<int:ad_request_id>')
-api.add_resource(UserResource, '/user')
+api.add_resource(UserResource, '/user', '/user/<int:user_id>')
 api.add_resource(AdminResource, '/admin')

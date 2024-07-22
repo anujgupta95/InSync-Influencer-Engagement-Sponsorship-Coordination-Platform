@@ -22,7 +22,7 @@ def create_app():
 
     with app.app_context():
 
-        from models import User, Role, UserRoles
+        from models import User, Role
         from flask_security import SQLAlchemyUserDatastore
 
         user_datastore = SQLAlchemyUserDatastore(db, User, Role)

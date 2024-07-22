@@ -18,12 +18,37 @@ class User(db.Model, UserMixin):
     roles = db.relationship('Role', secondary = 'user_roles', backref='users')
     campaigns = db.relationship('Campaign', backref='user') 
 
+    # Relationship to extend user-specific data
+    sponsor_data = db.relationship('SponsorData', uselist=False, backref='user')
+    influencer_data = db.relationship('InfluencerData', uselist=False, backref='user')
+
     #Taken care by flask-security
     fs_uniquifier = db.Column(db.String, nullable=False)
     last_login_at = db.Column(db.DateTime, default=dt.now())
     current_login_at = db.Column(db.DateTime, default=dt.now())
     current_login_ip = db.Column(db.String, default="0.0.0.0")
     login_count = db.Column(db.Integer, default=0)
+
+    def __init__(self, email, password, name, active=None, sponsor_data=None, influencer_data=None, fs_uniquifier=None, roles=None):
+        self.email=email
+        self.password = password
+        self.name = name
+        self.active=active
+        self.fs_uniquifier = fs_uniquifier
+        self.roles = roles
+        if roles[0].name == 'sponsor':
+            if sponsor_data is None:
+                self.sponsor_data = SponsorData(company_name="", industry = "", budget=0, user=self)
+            else:
+                self.sponsor_data = sponsor_data
+        
+        if roles[0].name == 'influencer':
+            if influencer_data is None:
+                self.influencer_data = InfluencerData(category="", niche = "", followers=0, user=self)
+            else:
+                self.influencer_data = influencer_data
+
+        
 
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,6 +76,17 @@ class Campaign(db.Model):
     updated_at = db.Column(db.DateTime, nullable=False, default=dt.now(), onupdate=dt.now())
     ad_requests = db.relationship('AdRequest', backref='campaign')
 
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'description': self.description,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+            'budget': self.budget,
+            'visibility': self.visibility,
+            'goals': self.goals
+        }
+
 class AdRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     campaign_id  = db.Column(db.Integer, db.ForeignKey('campaign.id'))
@@ -63,3 +99,42 @@ class AdRequest(db.Model):
     status= db.Column(db.Enum(*REQUEST_STATUS, name='request_status'), default='pending', nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=dt.now())
     updated_at = db.Column(db.DateTime, nullable=False, default=dt.now(), onupdate=dt.now())
+    
+    def to_dict(self):
+        return {
+            'campaign_id': self.campaign_id,
+            'influencer_id': self.influencer_id,
+            'messages': self.messages,
+            'requirements': self.requirements,
+            'payment_amount': self.payment_amount,
+            'revised_payment_amount': self.revised_payment_amount,
+            'status': self.status
+        }
+
+class SponsorData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    company_name = db.Column(db.String, nullable=False)
+    industry = db.Column(db.String)
+    budget = db.Column(db.Float)
+
+    def to_dict(self):
+        return {
+            'company_name': self.company_name,
+            'industry': self.industry,
+            'budget': self.budget
+        }
+
+class InfluencerData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    category = db.Column(db.String)
+    niche = db.Column(db.String)
+    followers = db.Column(db.Float)
+
+    def to_dict(self):
+        return {
+            'category': self.category,
+            'niche': self.niche,
+            'followers': self.followers
+        }
