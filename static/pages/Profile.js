@@ -1,5 +1,3 @@
-import router from "../utils/router";
-
 const Profile = {
   template: `
   <div>
@@ -11,7 +9,7 @@ const Profile = {
                     Profile
                 </div>
                 <div class="card-body">
-                    <form onsubmit="return false">
+                    <form @submit.prevent="updateInfo">
                         <div class="form-group ">
                             <div class="form-floating mt-2">
                               <input v-model="name" type="text" class="form-control" id="name" placeholder="Enter name" name="name" required>
@@ -80,7 +78,11 @@ const Profile = {
         industry: "",
         budget: 0,
       },
-      influencerData: {},
+      influencerData: {
+        category: "",
+        niche: "",
+        followers: 0,
+      },
     };
   },
   async mounted() {
@@ -93,11 +95,12 @@ const Profile = {
       } else if (data.message) {
         window.triggerToast(data.message, "success");
       } else {
+        // console.log(data);
         this.name = data.name;
         this.email = data.email;
         this.role = data.role;
-        this.sponsorData = data.sponsor_data;
-        this.influencerData = data.influencer_data;
+        this.sponsorData = data.sponsor_data || {};
+        this.influencerData = data.influencer_data || {};
       }
     } catch (error) {
       // window.triggerToast("Updation failed. Please try again.", "danger");
@@ -105,7 +108,7 @@ const Profile = {
     }
   },
   methods: {
-    async updateInfo(update_request) {
+    async updateInfo(update_requested) {
       const url = window.location.origin;
       try {
         const res = await fetch(url + "/api/user", {
@@ -115,7 +118,7 @@ const Profile = {
           },
           body: JSON.stringify({
             name: this.name,
-            request_role_update: this.role ? update_request : null,
+            request_role_update: update_requested ? "sponsor" : null,
             sponsor_data: this.sponsorData,
             influencer_data: this.influencerData,
           }),
@@ -126,10 +129,10 @@ const Profile = {
         if (data.error) {
           window.triggerToast(data.error, "warning");
         } else if (data.message) {
-          if (update_request) {
+          if (update_requested) {
             router.push("/logout");
             window.triggerToast(
-              "Role updation request successfully sent!\nPlease wait for the admin approval now",
+              "Role upgradation request successful.\nNow Please wait until admin approves it",
               "success"
             );
           }
@@ -140,11 +143,7 @@ const Profile = {
       }
     },
     updateRole() {
-      if (
-        confirm(
-          "Are you sure you want to update your role?\nThis will log you out and you can't login until admin approval."
-        )
-      ) {
+      if (confirm("Are you sure you want to upgrade you role?")) {
         this.updateInfo(true);
       }
     },

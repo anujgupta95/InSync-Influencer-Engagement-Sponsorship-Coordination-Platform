@@ -233,11 +233,13 @@ class UserResource(Resource):
             'sponsor_data': user.sponsor_data.to_dict() if user.sponsor_data else None,
             'influencer_data': user.influencer_data.to_dict() if user.influencer_data else None
         }
+        print("User Data:", user_dict)
         return jsonify(user_dict)
 
     @auth_required()
     def put(self, user_id=None):
         args = self.parser.parse_args()
+        print(args)
 
         if user_id is None:
             user = User.query.get(current_user.id)
@@ -255,7 +257,10 @@ class UserResource(Resource):
                 return {'error': 'You are already a sponsor'}, 400
             
             user.active = False
-            user.roles = [Role.query.filter_by(name='sponsor').first()]
+            # influencer_data = InfluencerData.query.filter_by(user_id=user.id).first()
+            # db.session.delete(influencer_data)
+            # user.roles = [Role.query.filter_by(name='sponsor').first()]
+            user.roles = []
         
         if args.sponsor_data:
             if user.sponsor_data:

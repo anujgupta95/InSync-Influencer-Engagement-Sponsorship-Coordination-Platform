@@ -3,6 +3,7 @@ from flask_security import UserMixin, RoleMixin
 from flask_security.models import fsqla_v3 as fsq
 from env import VISIBILITY_TYPES, REQUEST_STATUS
 from datetime import datetime as dt
+from flask import jsonify
 
 fsq.FsModels.set_db_info(db)
 
