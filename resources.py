@@ -3,7 +3,7 @@ from flask_security import auth_required, current_user, roles_required
 from flask import request, jsonify
 from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData
 from extensions import db
-from datetime import date
+from datetime import date, datetime
 from env import ALL_ROLES
 
 api = Api(prefix='/api')
@@ -19,8 +19,7 @@ class CampaignResource(Resource):
         'end_date' : fields.String,
         'budget' : fields.Float,
         'visibility' : fields.String,
-        'goals' : fields.String,
-        'flagged': fields.Boolean
+        'goals' : fields.String
     }
 
     parser.add_argument('name', type=str, required=True, help='Name cannot be blank')
@@ -33,8 +32,7 @@ class CampaignResource(Resource):
 
     @auth_required()
     @marshal_with(campaign_fields)
-    def get(self):
-        campaign_id = request.get_json()['campaign_id'] or None
+    def get(self, campaign_id=None):
         if current_user.has_role('admin'):
             if campaign_id is None:
                 # Admin can see all campaigns
@@ -48,9 +46,10 @@ class CampaignResource(Resource):
         elif current_user.has_role('sponsor'):
             if campaign_id is None:
                 # Sponsors can see their own campaigns
-                return Campaign.query.filter_by(user_id=current_user.id).all()
+                campaigns =  Campaign.query.filter_by(user_id=current_user.id).all()
+                campaigns_list = [campaign.to_dict() for campaign in campaigns]
+                return campaigns_list
             else:
-                # Sponsors can see their own campaign
                 campaign = Campaign.query.filter_by(user_id=current_user.id, id=campaign_id).first()
                 if not campaign:
                     return {'message': 'Campaign not found or not authorized'}, 404
@@ -85,24 +84,33 @@ class CampaignResource(Resource):
     
 
     ##Kuch to lafda lag rha h baad m modify kr lena
-    # @auth_required()
-    # @roles_required('sponsor')
-    # def put(self):
-    #     campaign_id = request.get_json()['campaign_id']
-    #     args = self.parser.parse_args()
-    #     campaign = Campaign.query.filter_by(user_id=current_user.id, id=campaign_id).first()
-    #     if not campaign:
-    #         return {'message': 'Campaign not found or not authorized'}, 404
-    #     for key, value in args.items():
-    #         if value is not None:
-    #             setattr(campaign, key, value)
-    #     db.session.commit()
-    #     return {'message': 'Campaign updated'}, 200
+    @auth_required()
+    @roles_required('sponsor')
+    def put(self, campaign_id=None):
+        if campaign_id is None:
+            campaign_id = request.get_json()['id']
+        args = self.parser.parse_args()
+        campaign = Campaign.query.filter_by(user_id=current_user.id, id=campaign_id).first()
+        if not campaign:
+            return {'message': 'Campaign not found or not authorized'}, 404
+        
+        for key, value in args.items():
+            if value is not None:
+                # Convert date fields to date objects
+                if key in ['start_date', 'end_date'] and isinstance(value, str):
+                    try:
+                        value = datetime.strptime(value, '%Y-%m-%d').date()
+                    except ValueError:
+                        return {'message': f"Invalid date format for {key}, expected YYYY-MM-DD"}, 400
+                
+                setattr(campaign, key, value)
+
+        db.session.commit()
+        return {'message': 'Campaign updated'}, 200
     
     @auth_required()
     @roles_required('sponsor')
-    def delete(self):
-        campaign_id = request.get_json()['campaign_id']
+    def delete(self, campaign_id=None):
         campaign = Campaign.query.filter_by(user_id=current_user.id, id=campaign_id).first()
         if not campaign:
             return {'message': 'Campaign not found or not authorized'}, 404
@@ -329,7 +337,7 @@ class AdminResource(Resource):
         return {'message': 'User status updated successfully'}, 200
 
 
-api.add_resource(CampaignResource, '/campaign')
+api.add_resource(CampaignResource, '/campaign', '/campaign/<int:campaign_id>')
 api.add_resource(AdRequestResource, '/ad_request', '/ad_request/<int:ad_request_id>')
 api.add_resource(UserResource, '/user', '/user/<int:user_id>')
 api.add_resource(AdminResource, '/admin')

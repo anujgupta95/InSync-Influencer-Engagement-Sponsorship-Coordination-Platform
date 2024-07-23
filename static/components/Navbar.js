@@ -25,7 +25,7 @@ const Navbar = {
                 </a>
                 <ul class="dropdown-menu" >
                   <li ><router-link to="/profile" class="dropdown-item"> Profile </router-link></li>
-                  <li><router-link to="/logout" class="dropdown-item"> Logout - Vue </router-link></li>
+                  <li><router-link to="/sponsor/dashboard" class="dropdown-item"> Sponsor Dashboard </router-link></li>
                   <li><hr class="dropdown-divider" /></li>
                 </ul>
               </li>

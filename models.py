@@ -66,7 +66,7 @@ class Campaign(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String, nullable=False)
-    description = db.Column(db.String)
+    description = db.Column(db.Text)
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
     budget = db.Column(db.Float)
@@ -79,6 +79,8 @@ class Campaign(db.Model):
 
     def to_dict(self):
         return {
+            'id' : self.id,
+            'user_id' : self.user_id,
             'name': self.name,
             'description': self.description,
             'start_date': self.start_date,
