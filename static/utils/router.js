@@ -6,6 +6,7 @@ import Signup from "../pages/Signup.js";
 import Profile from "../pages/Profile.js";
 import Logout from "../pages/Logout.js";
 import DashboardSponsor from "../pages/DashboardSponsor.js";
+import AddCampaign from "../pages/AddCampaign.js";
 
 const routes = [
   { path: "/", component: Home },
@@ -14,6 +15,7 @@ const routes = [
   { path: "/profile", component: Profile },
   { path: "/logout", component: Logout },
   { path: "/sponsor/dashboard", component: DashboardSponsor },
+  { path: "/sponsor/addCampaign", component: AddCampaign },
 ];
 
 const router = new VueRouter({

@@ -4,8 +4,16 @@ const DashboardSponsor = {
     <div>
       <h1>Sponsor Dashboard</h1>
       <div class="container mt-4">
-        <button class="btn btn-success mb-2">Add Campaign</button>
+        
         <div class="row">
+          <div class="card rounded shadow mb-2">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <h1 class="mb-0 flex-grow-1">Active Campaigns</h1>
+              <router-link to="/sponsor/addCampaign" class="btn btn-success">Add Campaign</router-link>
+            </div>
+          </div>
+
+
           <Campaign v-for="campaign in campaigns" :key="campaign.id" :campaign="campaign"
           @delete="removeCampaign" @update="handleUpdate" class="col-12 col-sm-6 col-md-6 col-lg-4 mb-3"/>
         </div>
