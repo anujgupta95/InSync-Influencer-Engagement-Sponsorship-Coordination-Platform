@@ -16,12 +16,13 @@ def create_app():
     # Security configurations
     app.config['SECURITY_REGISTERABLE'] = True
     app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
+    app.config['SECURITY_TRACKABLE'] = True
 
     db.init_app(app)
 
     with app.app_context():
 
-        from models import User, Role, UserRoles
+        from models import User, Role
         from flask_security import SQLAlchemyUserDatastore
 
         user_datastore = SQLAlchemyUserDatastore(db, User, Role)

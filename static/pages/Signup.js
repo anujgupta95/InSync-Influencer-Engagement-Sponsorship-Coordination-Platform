@@ -42,10 +42,40 @@ const Signup = {
 
                                 <div class="form-floating mt-4">
                                   <select v-model="role" class="form-select" id="role" name="role" required>
-                                    <option value="influencer" selected>Influencer</option>
+                                    <option disabled selected>Choose role</option>
+                                    <option value="influencer" >Influencer</option>
                                     <option value="sponsor">Sponsor</option>
                                   </select>
                                   <label for="role">Role</label>
+                                </div>
+                                
+                                <div v-if="role === 'influencer'" id="influencerData">
+                                  <div class="form-floating mt-4">
+                                    <input v-model="influencerData.category" type="text" class="form-control" placeholder="Enter Category" name="category" required>
+                                    <label for="category">Category</label>
+                                  </div>
+                                  <div class="form-floating mt-4">
+                                    <input v-model="influencerData.niche" type="text" class="form-control" placeholder="Enter Niche" name="niche" required>
+                                    <label for="niche">Niche</label>
+                                  </div>
+                                  <div class="form-floating mt-4">
+                                    <input v-model="influencerData.followers" type="number" class="form-control" placeholder="Enter Followers" name="followers" required>
+                                    <label for="followers">Followers</label>
+                                  </div>
+                                </div>
+                                <div v-if="role === 'sponsor'" id="sponsorData">
+                                  <div class="form-floating mt-4">
+                                    <input v-model="sponsorData.company_name" type="text" class="form-control" placeholder="Enter Company Name" name="company_name" required>
+                                    <label for="company_name">Company Name</label>
+                                  </div>
+                                  <div class="form-floating mt-4">
+                                    <input v-model="sponsorData.industry" type="text" class="form-control" placeholder="Enter Industry" name="industry" required>
+                                    <label for="industry">Industry</label>
+                                  </div>
+                                  <div class="form-floating mt-4">
+                                    <input v-model="sponsorData.budget" type="number" class="form-control" placeholder="Enter Budget" name="budget" required>
+                                    <label for="budget">Budget</label>
+                                  </div>
                                 </div>
                                 <button type="submit" class="btn btn-success w-100 mt-3" @click="submitInfo">Sign Up</button>
                             </div>
@@ -65,10 +95,20 @@ const Signup = {
       email: "",
       password: "",
       cnf_password: "",
-      role: "influencer",
+      role: "Choose role",
       pass_error: "",
       cnf_pass_error: "",
       showPassword: false,
+      sponsorData: {
+        company_name: "",
+        industry: "",
+        budget: 0,
+      },
+      influencerData: {
+        category: "",
+        niche: "",
+        followers: 0,
+      },
     };
   },
   watch: {
@@ -100,8 +140,27 @@ const Signup = {
         !this.password ||
         !this.cnf_password ||
         this.password.length < 4 ||
-        this.password !== this.cnf_password
+        this.password !== this.cnf_password ||
+        this.role == "Choose role"
       ) {
+        window.triggerToast("Enter Valid details", "warning");
+        return false;
+      }
+      if (
+        this.role == "influencer" &&
+        (!this.influencerData.category ||
+          !this.influencerData.niche ||
+          !this.influencerData.followers)
+      ) {
+        window.triggerToast("Enter Valid Inluencer details", "warning");
+        return false;
+      } else if (
+        this.role == "sponsor" &&
+        (!this.sponsorData.company_name ||
+          !this.sponsorData.industry ||
+          !this.sponsorData.budget)
+      ) {
+        window.triggerToast("Enter Valid Inluencer details", "warning");
         return false;
       }
 
@@ -117,6 +176,12 @@ const Signup = {
             password: this.password,
             name: this.name,
             role: this.role,
+            category: this.influencerData.category,
+            niche: this.influencerData.niche,
+            followers: this.influencerData.followers,
+            company_name: this.sponsorData.company_name,
+            industry: this.sponsorData.industry,
+            budget: this.sponsorData.budget,
           }),
           credentials: "same-origin",
         });
