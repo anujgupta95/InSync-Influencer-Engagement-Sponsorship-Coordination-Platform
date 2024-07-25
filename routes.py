@@ -48,46 +48,46 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore):
             return jsonify({"error": "User already exists"}), 409
 
         try:
+            sponsor_data = None
+            influencer_data = None
+
+            if role == "sponsor":
+                sponsor_data_dict = data.get('sponsor_data', {})
+                company_name = sponsor_data_dict.get('company_name', "")
+                industry = sponsor_data_dict.get('industry', "")
+                budget = sponsor_data_dict.get('budget', 0)
+
+                sponsor_data = SponsorData(
+                    company_name=company_name,
+                    industry=industry,
+                    budget=budget
+                )
+
+            elif role == 'influencer':
+                influencer_data_dict = data.get('influencer_data', {})
+                category = influencer_data_dict.get('category', "")
+                niche = influencer_data_dict.get('niche', "")
+                followers = influencer_data_dict.get('followers', 0)
+
+                influencer_data = InfluencerData(
+                    category=category,
+                    niche=niche,
+                    followers=followers
+                )
+
             user = user_datastore.create_user(
-                email=email, 
+                email=email,
                 password=hash_password(password),
                 roles=[role],
                 active=True if role == 'influencer' else False,
-                name=name
+                name=name,
+                sponsor_data=sponsor_data,
+                influencer_data=influencer_data
             )
-            
-            # Create the role-specific data
-            if role == "sponsor":
-                company_name = data.get('company_name')
-                industry = data.get('industry')
-                budget = data.get('budget')
 
-                sponsor_data = SponsorData(
-                    company_name=company_name, 
-                    industry=industry, 
-                    budget=budget,
-                    user=user  # Link sponsor data to the user
-                )
-                db.session.add(sponsor_data)
-            
-            elif role == 'influencer':
-                category = data.get('category')
-                niche = data.get('niche')
-                followers = data.get('followers')
-
-                influencer_data = InfluencerData(
-                    category=category, 
-                    niche=niche, 
-                    followers=followers,
-                    user=user  # Link influencer data to the user
-                )
-                db.session.add(influencer_data)
-
-            # Commit the session after creating both user and role-specific data
             db.session.commit()
-
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": f"Error while creating user: {str(e)}"}), 500
-        
+
         return jsonify({"message": "User created"}), 200

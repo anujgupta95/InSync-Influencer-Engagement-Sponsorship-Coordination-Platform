@@ -37,17 +37,11 @@ class User(db.Model, UserMixin):
         self.active=active
         self.fs_uniquifier = fs_uniquifier
         self.roles = roles
-        if roles[0].name == 'sponsor':
-            if sponsor_data is None:
-                self.sponsor_data = SponsorData(company_name="", industry = "", budget=0, user=self)
-            else:
-                self.sponsor_data = sponsor_data
         
-        if roles[0].name == 'influencer':
-            if influencer_data is None:
-                self.influencer_data = InfluencerData(category="", niche = "", followers=0, user=self)
-            else:
-                self.influencer_data = influencer_data
+        if roles and roles[0].name == 'sponsor':
+            self.sponsor_data = sponsor_data or SponsorData(company_name="", industry="", budget=0, user=self)
+        elif roles and roles[0].name == 'influencer':
+            self.influencer_data = influencer_data or InfluencerData(category="", niche="", followers=0, user=self)
 
         
 

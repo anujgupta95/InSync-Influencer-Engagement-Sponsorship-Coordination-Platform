@@ -160,7 +160,7 @@ const Signup = {
           !this.sponsorData.industry ||
           !this.sponsorData.budget)
       ) {
-        window.triggerToast("Enter Valid Inluencer details", "warning");
+        window.triggerToast("Enter Valid Sponsor details", "warning");
         return false;
       }
 
@@ -176,12 +176,9 @@ const Signup = {
             password: this.password,
             name: this.name,
             role: this.role,
-            category: this.influencerData.category,
-            niche: this.influencerData.niche,
-            followers: this.influencerData.followers,
-            company_name: this.sponsorData.company_name,
-            industry: this.sponsorData.industry,
-            budget: this.sponsorData.budget,
+            influencer_data:
+              this.role === "influencer" ? this.influencerData : {},
+            sponsor_data: this.role === "sponsor" ? this.sponsorData : {},
           }),
           credentials: "same-origin",
         });
