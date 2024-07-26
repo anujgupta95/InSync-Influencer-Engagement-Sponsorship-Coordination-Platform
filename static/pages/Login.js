@@ -69,9 +69,9 @@ const Login = {
 
         const data = await res.json();
         if (res.ok) {
-          store.commit("setLogIn");
-          if (router.currentRoute.path !== "/profile") {
-            router.push("/profile");
+          store.commit("setLogIn", data.role);
+          if (router.currentRoute.path !== "/") {
+            router.push("/");
           }
           window.triggerToast("Login Successful!", "success");
         } else {

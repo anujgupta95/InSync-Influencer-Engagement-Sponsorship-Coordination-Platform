@@ -87,7 +87,7 @@ class Campaign(db.Model):
 class AdRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     campaign_id  = db.Column(db.Integer, db.ForeignKey('campaign.id'))
-    influencer_id  = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id  = db.Column(db.Integer, db.ForeignKey('user.id'))
     messages = db.Column(db.String)
     requirements = db.Column(db.String)
     payment_amount = db.Column(db.Float)
@@ -100,7 +100,7 @@ class AdRequest(db.Model):
     def to_dict(self):
         return {
             'campaign_id': self.campaign_id,
-            'influencer_id': self.influencer_id,
+            'user_id': self.user_id,
             'messages': self.messages,
             'requirements': self.requirements,
             'payment_amount': self.payment_amount,

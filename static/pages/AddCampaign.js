@@ -92,10 +92,7 @@ const AddCampaign = {
                     <button type="submit" class="btn btn-success w-100 mt-3">
                       Create Campaign
                     </button>
-                    <button
-                      type="button"
-                      @click="resetForm"
-                      class="btn btn-secondary w-100 mt-2"
+                    <button type="button" @click="resetForm" class="btn btn-secondary w-100 mt-2"
                     >
                       Reset
                     </button>
@@ -115,8 +112,8 @@ const AddCampaign = {
       campaignData: {
         name: "",
         description: "",
-        start_date: "",
-        end_date: "",
+        start_date: new Date().toISOString().split("T")[0],
+        end_date: new Date().toISOString().split("T")[0],
         budget: null,
         visibility: "public",
         goals: "",
@@ -133,7 +130,7 @@ const AddCampaign = {
       this.date_error = "";
 
       try {
-        const response = await fetch("/api/campaign", {
+        const res = await fetch("/api/campaign", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -141,17 +138,16 @@ const AddCampaign = {
           body: JSON.stringify(this.campaignData),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          window.triggerToast(
-            errorData.message || "Failed to create campaign",
-            "danger"
-          );
+        const data = await res.json();
+        if (res.ok) {
+          window.triggerToast(data.message, "success");
+          this.resetForm();
           return;
         }
-
-        window.triggerToast("Campaign created successfully", "success");
-        this.resetForm();
+        window.triggerToast(
+          data.error || "Failed to create campaign",
+          "danger"
+        );
       } catch (error) {
         console.error("Failed to create campaign:", error);
         window.triggerToast(
@@ -164,8 +160,8 @@ const AddCampaign = {
       this.campaignData = {
         name: "",
         description: "",
-        start_date: "",
-        end_date: "",
+        start_date: new Date().toISOString().split("T")[0],
+        end_date: new Date().toISOString().split("T")[0],
         budget: null,
         visibility: "public",
         goals: "",

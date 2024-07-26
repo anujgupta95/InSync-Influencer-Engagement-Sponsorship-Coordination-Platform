@@ -6,15 +6,9 @@ const Navbar = {
       <nav class="navbar navbar-expand-lg shadow rounded m-2 p-2">
         <div class="container-fluid">
           <a class="navbar-brand" href="/"><strong>Sponsorship</strong></a>
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
+          <button class="navbar-toggler"
+            type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -23,9 +17,14 @@ const Navbar = {
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                   Dropdown
                 </a>
-                <ul class="dropdown-menu" >
-                  <li ><router-link to="/profile" class="dropdown-item"> Profile </router-link></li>
-                  <li><router-link to="/sponsor/dashboard" class="dropdown-item"> Sponsor Dashboard </router-link></li>
+                <ul class="dropdown-menu">
+                  <li><router-link to="/profile" class="dropdown-item">Profile</router-link></li>
+                  <li v-if="userRole === 'sponsor'">
+                    <router-link to="/sponsor/dashboard" class="dropdown-item">Sponsor Dashboard</router-link>
+                  </li>
+                  <li v-if="userRole === 'sponsor'">
+                    <router-link to="/sponsor/addCampaign" class="dropdown-item">Add Campaign</router-link>
+                  </li>
                   <li><hr class="dropdown-divider" /></li>
                 </ul>
               </li>
@@ -33,33 +32,36 @@ const Navbar = {
                 <a class="nav-link disabled" aria-disabled="true">Disabled</a>
               </li>
             </ul>
-            <form class="d-flex" role="search" >
-              <div class="form-floating" >
+            <form class="d-flex" role="search">
+              <div class="form-floating">
                 <input v-model="search" type="search" class="form-control form-control-lg" placeholder="Search" name="search" required>
                 <label for="search">Search</label>
               </div>
-              <button class="btn btn-outline-success ms-2" type="submit">
-                Search
-              </button>
+              <button class="btn btn-outline-success ms-2" type="submit">Search</button>
             </form>
             <ul class="navbar-nav mb-2 mb-lg-0">
               <li class="nav-item" v-if="!isLoggedIn">
-                <router-link to="/login" class="nav-link"> Login </router-link>
+                <router-link to="/login" class="nav-link">Login</router-link>
               </li>
               <li class="nav-item" v-if="!isLoggedIn">
-                <router-link to="/signup" class="nav-link"> Sign Up </router-link>
+                <router-link to="/signup" class="nav-link">Sign Up</router-link>
               </li>
               <li class="nav-item dropdown" v-if="isLoggedIn" style="margin-left: 10px">
-                <a class="nav-link dropdown-center" data-bs-toggle="dropdown" role="button" ria-expanded="false">
+                <a class="nav-link dropdown-center" data-bs-toggle="dropdown" role="button" aria-expanded="false">
                   <i class="bi bi-person-circle" style="font-size:2rem;"></i>
                 </a>
-                <ul class="dropdown-menu">
-                  <li class="nav-item" >
-                    <router-link to="/profile" class="dropdown-item"> Profile </router-link>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><router-link to="/profile" class="dropdown-item">Profile</router-link></li>
+                  <li v-if="userRole === 'sponsor'">
+                    <router-link to="/sponsor/dashboard" class="dropdown-item">Sponsor Dashboard</router-link>
                   </li>
-                  <li class="nav-item">
-                    <router-link to="/logout" class="dropdown-item"> Logout </router-link>
+                  <li v-if="userRole === 'influencer'">
+                    <router-link to="/influencer/dashboard" class="dropdown-item">Influencer Dashboard</router-link>
                   </li>
+                  <li v-if="userRole === 'influencer'">
+                    <router-link to="/influencer/viewCampaigns" class="dropdown-item">View Campaigns</router-link>
+                  </li>
+                  <li><router-link to="/logout" class="dropdown-item">Logout</router-link></li>
                 </ul>
               </li>
             </ul>

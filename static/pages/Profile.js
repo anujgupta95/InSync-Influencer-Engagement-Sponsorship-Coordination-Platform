@@ -58,8 +58,8 @@ const Profile = {
                                 <label for="budget">Budget</label>
                               </div>
                             </div>
-                            <button type="submit" class="btn btn-success w-100 mt-3" @click="updateInfo">Update Details</button>
-                            <button v-if="role === 'influencer'" type="submit" class="btn btn-success w-100 mt-3" @click="updateRole">Become a Sponsor</button>
+                            <button class="btn btn-success w-100 mt-3" @click="updateInfo">Update Details</button>
+                            <button v-if="role === 'influencer'" type="button" class="btn btn-success w-100 mt-3" @click="updateRole">Become a Sponsor</button>
                         </div>
                     </form>
                 </div>
@@ -108,7 +108,7 @@ const Profile = {
     }
   },
   methods: {
-    async updateInfo(update_requested) {
+    async updateInfo(event, update_requested) {
       const url = window.location.origin;
       try {
         const res = await fetch(url + "/api/user", {
