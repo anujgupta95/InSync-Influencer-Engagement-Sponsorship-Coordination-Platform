@@ -56,7 +56,8 @@ const DashboardInfluencer = {
         const data = await response.json();
         this.campaigns = data;
       } catch (error) {
-        console.error("Failed to fetch campaigns:", error);
+        window.triggerToast(error, "danger");
+        // console.error("Failed to fetch campaigns:", error);
       }
     },
     async fetchAdRequests() {
@@ -68,10 +69,11 @@ const DashboardInfluencer = {
           },
         });
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
         this.adRequests = data;
       } catch (error) {
-        console.error("Failed to fetch ad requests:", error);
+        window.triggerToast(error, "danger");
+        // console.error("Failed to fetch ad requests:", error);
       }
     },
     viewRequestDetails(requestId) {

@@ -128,11 +128,10 @@ class AdRequestResource(Resource):
         'status': fields.String
     }
 
-    parser.add_argument('campaign_id', type=int, required=True, help='Campaign ID cannot be blank')
-    parser.add_argument('user_id', type=int, required=True, help='Influencer ID cannot be blank')
+    parser.add_argument('campaign_id', type=int)
     parser.add_argument('messages', type=str)
     parser.add_argument('requirements', type=str)
-    parser.add_argument('payment_amount', type=float, required=True, help='Payment amount cannot be blank')
+    parser.add_argument('payment_amount', type=float)
     parser.add_argument('revised_payment_amount', type=float)
     parser.add_argument('negotiation_notes', type=str)
     parser.add_argument('status', type=str)
@@ -150,10 +149,12 @@ class AdRequestResource(Resource):
                 return ad_request.to_dict()
         elif current_user.has_role('sponsor'):
             if ad_request_id is None:
-                ad_requests = AdRequest.query.filter_by(campaign_id=Campaign.query.filter_by(user_id=current_user.id).subquery()).all()
+                # campaign_ids = [campaign.id for campaign in current_user.campaigns]
+                # ad_requests = AdRequest.query.filter(AdRequest.campaign_id.in_(campaign_ids)).all()
+                ad_requests = AdRequest.query.join(Campaign).filter(Campaign.user_id == current_user.id).all()
                 return [ad_request.to_dict() for ad_request in ad_requests]
             else:
-                ad_request = AdRequest.query.filter_by(campaign_id=Campaign.query.filter_by(user_id=current_user.id).subquery(), id=ad_request_id).first()
+                ad_request = AdRequest.query.join(Campaign).filter(Campaign.user_id == current_user.id, AdRequest.id == ad_request_id).first()
                 if not ad_request:
                     return {'message': 'Ad request not found or not authorized'}, 404
                 return ad_request.to_dict()
@@ -168,32 +169,48 @@ class AdRequestResource(Resource):
                 return ad_request.to_dict()
 
     @auth_required()
-    @roles_required('sponsor')
-    # @roles_accepted('sponsor', 'influencer')
+    @roles_required('influencer')
     def post(self):
         args = self.parser.parse_args()
+        campaign_id = args.campaign_id
+        campaign = Campaign.query.get(campaign_id)
+        if not campaign:
+            return {'error': 'Campaign does not exist'}, 400
+        if AdRequest.query.filter_by(campaign_id=campaign_id, user_id=current_user.id).first():
+            return {'error': 'You have already applied for this campaign. Please wait until sponsor accepts your request.'}, 400
+        
         ad_request = AdRequest(
-            campaign_id=args.campaign_id,
-            user_id=args.user_id,
+            campaign_id=campaign_id,
+            user_id=current_user.id,
             messages=args.messages,
             requirements=args.requirements,
             payment_amount=args.payment_amount,
             status=args.status
-        )
+            )
         db.session.add(ad_request)
         db.session.commit()
         return {'message': 'Ad request created'}, 201
 
     @auth_required()
-    @roles_required('influencer')
+    @roles_accepted('influencer', 'sponsor')
     def put(self, ad_request_id):
         args = self.parser.parse_args()
-        ad_request = AdRequest.query.filter_by(user_id=current_user.id, id=ad_request_id).first()
+        ad_request = AdRequest.query.get(ad_request_id)
         if not ad_request:
             return {'message': 'Ad request not found or not authorized'}, 404
-        for key, value in args.items():
-            if value is not None:
-                setattr(ad_request, key, value)
+        
+        if current_user.has_role('influencer'):
+            for key, value in args.items():
+                if value is not None:
+                    setattr(ad_request, key, value)
+
+        elif current_user.has_role('sponsor'):
+            if 'status' in args:
+                ad_request.status = args.status
+            if 'negotiation_notes' in args:
+                ad_request.negotiation_notes += '\n'+ args.negotiation_notes
+            if 'revised_payment_amount' in args:
+                ad_request.revised_payment_amount = args.revised_payment_amount
         db.session.commit()
         return {'message': 'Ad request updated'}, 200
 

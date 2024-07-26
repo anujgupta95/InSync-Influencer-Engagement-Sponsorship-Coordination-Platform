@@ -69,7 +69,7 @@ class Campaign(db.Model):
     flagged = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=dt.now())
     updated_at = db.Column(db.DateTime, nullable=False, default=dt.now(), onupdate=dt.now())
-    ad_requests = db.relationship('AdRequest', backref='campaign')
+    ad_requests = db.relationship('AdRequest', backref='campaign', cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -86,25 +86,27 @@ class Campaign(db.Model):
 
 class AdRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    campaign_id  = db.Column(db.Integer, db.ForeignKey('campaign.id'))
-    user_id  = db.Column(db.Integer, db.ForeignKey('user.id'))
+    campaign_id  = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
+    user_id  = db.Column(db.Integer, db.ForeignKey('user.id')) #Who created the ad request
     messages = db.Column(db.String)
     requirements = db.Column(db.String)
     payment_amount = db.Column(db.Float)
     revised_payment_amount = db.Column(db.Float)  # To track negotiation changes
-    negotiation_notes = db.Column(db.Text)  # To keep track of negotiation details
+    negotiation_notes = db.Column(db.Text, default="")  # To keep track of negotiation details
     status= db.Column(db.Enum(*REQUEST_STATUS, name='request_status'), default='pending', nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=dt.now())
     updated_at = db.Column(db.DateTime, nullable=False, default=dt.now(), onupdate=dt.now())
     
     def to_dict(self):
         return {
+            'id': self.id,
             'campaign_id': self.campaign_id,
             'user_id': self.user_id,
             'messages': self.messages,
             'requirements': self.requirements,
             'payment_amount': self.payment_amount,
             'revised_payment_amount': self.revised_payment_amount,
+            'negotiation_notes': self.negotiation_notes,
             'status': self.status
         }
 

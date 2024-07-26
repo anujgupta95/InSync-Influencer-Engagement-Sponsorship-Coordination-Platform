@@ -2,6 +2,7 @@ import store from "../utils/store.js";
 const Campaign = {
   template: `
     <div class="card mb-3">
+        <h5 v-if="header" class="card-header">{{header}}</h5>
         <div class="card-body">
             <div v-if="isEditing && isSponsor">
                 <div class="form-floating mb-2">
@@ -70,6 +71,9 @@ const Campaign = {
     campaign: {
       type: Object,
       required: true,
+    },
+    header: {
+      type: String,
     },
   },
   computed: {

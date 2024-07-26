@@ -10,6 +10,7 @@ import DashboardSponsor from "../pages/DashboardSponsor.js";
 import DashboardInfluencer from "../pages/DashboardInfluencer.js";
 import CampaignDetails from "../pages/CampaignDetails.js";
 import AddCampaign from "../pages/AddCampaign.js";
+import ViewAdRequest from "../pages/ViewAdRequest.js";
 
 const routes = [
   { path: "/", component: Home },
@@ -36,6 +37,11 @@ const routes = [
     path: "/influencer/campaign/apply/:id",
     component: CampaignDetails,
     meta: { requiresAuth: true, requiredRole: "influencer" },
+  },
+  {
+    path: `/ad-request/view/:id`,
+    component: ViewAdRequest,
+    meta: { requiresAuth: true },
   },
 ];
 
