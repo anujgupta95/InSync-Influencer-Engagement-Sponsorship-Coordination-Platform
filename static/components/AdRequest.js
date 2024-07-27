@@ -31,7 +31,7 @@ const AdRequest = {
   },
   methods: {
     async viewAdRequest() {
-      router.push(`/ad-request/${this.adRequest.id}`);
+      router.push(`/sponsor/ad-request/${this.adRequest.id}`);
     },
   },
 };

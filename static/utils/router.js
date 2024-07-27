@@ -8,7 +8,7 @@ import Profile from "../pages/Profile.js";
 import Logout from "../pages/Logout.js";
 import DashboardSponsor from "../pages/DashboardSponsor.js";
 import DashboardInfluencer from "../pages/DashboardInfluencer.js";
-import CampaignDetails from "../pages/CampaignDetails.js";
+import InfluencerCampaignDetails from "../pages/InfluencerCampaignDetails.js";
 import AddCampaign from "../pages/AddCampaign.js";
 import ViewAdRequest from "../pages/ViewAdRequest.js";
 
@@ -35,13 +35,13 @@ const routes = [
   },
   {
     path: "/influencer/campaign/:id",
-    component: CampaignDetails,
+    component: InfluencerCampaignDetails,
     meta: { requiresAuth: true, requiredRole: "influencer" },
   },
   {
-    path: `/ad-request/:id`,
+    path: `/sponsor/ad-request/:id`,
     component: ViewAdRequest,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiredRole: "sponsor" },
   },
 ];
 

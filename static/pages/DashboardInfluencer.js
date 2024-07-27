@@ -23,9 +23,9 @@ const DashboardInfluencer = {
               No ad requests at the moment.
             </div>
             <ul v-else>
-              <li v-for="request in adRequests" :key="request.id">
-                <p>{{ request.messages }}</p>
-                <button class="btn btn-info" @click="viewRequestDetails(request.id)">View Details</button>
+              <li v-for="adRequest in adRequests" :key="adRequest.id">
+                <p>{{ adRequest.messages }}</p>
+                <button class="btn btn-info" @click="viewRequestDetails(adRequest.campaign_id)">View Details</button>
               </li>
             </ul>
           </div>
@@ -76,8 +76,8 @@ const DashboardInfluencer = {
         // console.error("Failed to fetch ad requests:", error);
       }
     },
-    viewRequestDetails(requestId) {
-      router.push(`/ad-request/${requestId}`);
+    viewRequestDetails(campaignId) {
+      router.push(`/influencer/campaign/${campaignId}`);
     },
   },
   components: {

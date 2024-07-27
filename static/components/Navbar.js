@@ -46,20 +46,22 @@ const Navbar = {
               <li class="nav-item" v-if="!isLoggedIn">
                 <router-link to="/signup" class="nav-link">Sign Up</router-link>
               </li>
-              <li class="nav-item dropdown" v-if="isLoggedIn" style="margin-left: 10px">
-                <a class="nav-link dropdown-center" data-bs-toggle="dropdown" role="button" aria-expanded="false">
-                  <i class="bi bi-person-circle" style="font-size:2rem;"></i>
+              <li v-if="userRole === 'sponsor'" class="nav-item">
+                  <router-link to="/sponsor/dashboard" class="nav-link">Dashboard</router-link>
+              </li>
+              <li v-if="userRole === 'influencer'" class="nav-item">
+                  <router-link to="/influencer/dashboard" class="nav-link">Dashboard</router-link>
+              </li>
+              <li class="nav-item dropdown ms-2" v-if="isLoggedIn" >
+                <a class="nav-link dropdown-header fs-2 bi bi-person-circle icon-link" data-bs-toggle="dropdown" role="button" aria-expanded="false">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><router-link to="/profile" class="dropdown-item">Profile</router-link></li>
                   <li v-if="userRole === 'sponsor'">
-                    <router-link to="/sponsor/dashboard" class="dropdown-item">Sponsor Dashboard</router-link>
+                    <router-link to="/sponsor/dashboard" class="dropdown-item">Dashboard</router-link>
                   </li>
                   <li v-if="userRole === 'influencer'">
-                    <router-link to="/influencer/dashboard" class="dropdown-item">Influencer Dashboard</router-link>
-                  </li>
-                  <li v-if="userRole === 'influencer'">
-                    <router-link to="/influencer/viewCampaigns" class="dropdown-item">View Campaigns</router-link>
+                    <router-link to="/influencer/dashboard" class="dropdown-item">Dashboard</router-link>
                   </li>
                   <li><router-link to="/logout" class="dropdown-item">Logout</router-link></li>
                 </ul>

@@ -232,6 +232,16 @@ class AdRequestResource(Resource):
                 ad_request.revised_payment_amount = args.revised_payment_amount
         db.session.commit()
         return {'message': 'Ad request updated'}, 200
+    
+    @auth_required()
+    @roles_required('sponsor')
+    def delete(self, ad_request_id):
+        ad_request = AdRequest.query.filter_by(id=ad_request_id).first()
+        if not ad_request:
+            return {'message': 'Ad request not found or not authorized'}, 404
+        db.session.delete(ad_request)
+        db.session.commit()
+        return {'message': 'Ad request deleted'}, 200
 
 class UserResource(Resource):
 

@@ -47,10 +47,11 @@ const ViewAdRequest = {
                     <input v-model="revisedPaymentAmount" type="number" class="form-control" placeholder="Revised Payment Amount" />
                     </div>
                 </div>
-                <button v-if="adRequest.status === 'negotiating'" @click="updateStatus" class="btn btn-warning w-25 me-2">Update Negotiation</button>
-                <button v-if="!['rejected', 'accepted'].includes(adRequest.status)" @click="updateStatus('accepted')" class="btn btn-success me-2 w-25">Accept</button>
-                <button v-if="!['rejected', 'accepted'].includes(adRequest.status)" @click="updateStatus('rejected')" class="btn btn-danger me-2 w-25">Reject</button>
-                <button v-if="adRequest.status === 'pending'" @click="updateStatus('negotiating')" class="btn btn-warning me-2 w-25">Start Negotiating</button>
+                <button v-if="adRequest.status === 'negotiating'" @click="updateStatus" class="btn btn-warning w-20 me-2">Update Negotiation</button>
+                <button v-if="!['rejected', 'accepted'].includes(adRequest.status)" @click="updateStatus('accepted')" class="btn btn-success me-2 w-20">Accept</button>
+                <button v-if="!['rejected', 'accepted'].includes(adRequest.status)" @click="updateStatus('rejected')" class="btn btn-danger me-2 w-20">Reject</button>
+                <button v-if="adRequest.status === 'pending'" @click="updateStatus('negotiating')" class="btn btn-warning me-2 w-20">Start Negotiating</button>
+                <button @click="deleteAdRequest" class="btn btn-danger me-2 w-20">Delete Ad Request</button>
                 </div>
             </div>
             </div>
@@ -112,10 +113,23 @@ const ViewAdRequest = {
         });
       } catch (error) {
         console.error("Error updating negotiation:", error);
+        window.triggerToast("Error updating negotiation", "danger");
       }
       this.updateInfo();
       this.negotiationNotes = null;
       this.revisedPaymentAmount = null;
+    },
+    async deleteAdRequest() {
+      try {
+        await fetch(`/api/ad-request/${this.adRequest.id}`, {
+          method: "DELETE",
+        });
+      } catch (error) {
+        console.error(error, error);
+        window.triggerToast("Unable to delete Ad Request", "danger");
+      }
+      // this.updateInfo();
+      this.goBack();
     },
   },
   components: {

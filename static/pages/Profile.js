@@ -1,3 +1,5 @@
+import router from "../utils/router.js";
+
 const Profile = {
   template: `
   <div>
@@ -108,7 +110,7 @@ const Profile = {
     }
   },
   methods: {
-    async updateInfo(event, update_requested) {
+    async updateInfo(event, updateRequested) {
       const url = window.location.origin;
       try {
         const res = await fetch(url + "/api/user", {
@@ -118,24 +120,26 @@ const Profile = {
           },
           body: JSON.stringify({
             name: this.name,
-            request_role_update: update_requested ? "sponsor" : null,
+            request_role_update: updateRequested ? "sponsor" : null,
             sponsor_data: this.sponsorData,
             influencer_data: this.influencerData,
           }),
           credentials: "same-origin",
         });
-
         const data = await res.json();
-        if (data.error) {
+        if (res.ok) {
+          window.triggerToast(
+            updateRequested
+              ? "Role upgrade request successful. Please wait for admin approval."
+              : "Profile updated successfully.",
+            "success"
+          );
+          if (updateRequested) {
+            router.push("/logout");
+          }
+        } else if (data.error) {
           window.triggerToast(data.error, "warning");
         } else if (data.message) {
-          if (update_requested) {
-            router.push("/logout");
-            window.triggerToast(
-              "Role upgradation request successful.\nNow Please wait until admin approves it",
-              "success"
-            );
-          }
           window.triggerToast(data.message, "success");
         }
       } catch (error) {
@@ -144,7 +148,13 @@ const Profile = {
     },
     updateRole() {
       if (confirm("Are you sure you want to upgrade you role?")) {
-        this.updateInfo(true);
+        setTimeout(() => {
+          window.triggerToast(
+            "Role upgrade request successful. Please wait for admin approval.",
+            "success"
+          );
+        }, 700);
+        this.updateInfo(null, true);
       }
     },
   },

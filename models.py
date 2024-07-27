@@ -17,11 +17,11 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, nullable=False, default=dt.now())
     updated_at = db.Column(db.DateTime, nullable=False, default=dt.now(), onupdate=dt.now())
     roles = db.relationship('Role', secondary = 'user_roles', backref='users')
-    campaigns = db.relationship('Campaign', backref='user') 
+    campaigns = db.relationship('Campaign', backref='user', cascade='all, delete-orphan') 
 
     # Relationship to extend user-specific data
-    sponsor_data = db.relationship('SponsorData', uselist=False, backref='user')
-    influencer_data = db.relationship('InfluencerData', uselist=False, backref='user')
+    sponsor_data = db.relationship('SponsorData', uselist=False, backref='user', cascade='all, delete-orphan')
+    influencer_data = db.relationship('InfluencerData', uselist=False, backref='user', cascade='all, delete-orphan')
 
     #Taken care by flask-security
     fs_uniquifier = db.Column(db.String, nullable=False)

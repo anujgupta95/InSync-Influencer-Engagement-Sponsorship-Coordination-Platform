@@ -90,9 +90,9 @@ const DashboardSponsor = {
           </div>
         </div>
         
-        <div class="d-flex">
+        <div class="d-flex row">
           <Campaign v-for="campaign in filteredCampaigns" :key="campaign.id" :campaign="campaign"
-            @delete="removeCampaign" @update="handleUpdate" class="col-12 col-sm-6 col-md-6 col-lg-4 mb-3"/>
+            @delete="removeCampaign" @update="handleUpdate" class="shadow col-12 col-sm-6 col-md-6 col-lg-6 mb-2"/>
         </div>
       </div>  
     </div>

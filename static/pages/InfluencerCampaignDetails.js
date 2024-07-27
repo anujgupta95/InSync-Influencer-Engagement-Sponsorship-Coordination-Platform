@@ -1,6 +1,6 @@
 import router from "../utils/router.js";
 
-const CampaignDetails = {
+const InfluencerCampaignDetails = {
   template: `
     <div>
       <div v-if="campaign" class="container mt-4 mb-2">
@@ -68,7 +68,8 @@ const CampaignDetails = {
                       <input v-model="revisedPaymentAmount" type="number" class="form-control" placeholder="Revised Payment Amount" />
                       </div>
                   </div>
-                  <button v-if="adRequest.status === 'negotiating'" @click="updateStatus" class="btn btn-warning w-25 me-2">Update Negotiation</button>
+                  <button v-if="adRequest.status === 'negotiating'" @click="updateStatus" class="btn btn-warning w-20 me-2">Update Negotiation</button>
+                  
                 </div>
               </div>
             </div>
@@ -159,10 +160,11 @@ const CampaignDetails = {
       this.negotiationNotes = null;
       this.revisedPaymentAmount = null;
     },
+
     goBack() {
       router.go(-1);
     },
   },
 };
 
-export default CampaignDetails;
+export default InfluencerCampaignDetails;
