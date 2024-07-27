@@ -4,7 +4,7 @@ from flask import request, jsonify
 from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData
 from extensions import db
 from datetime import date, datetime
-from env import ALL_ROLES
+from env import ALL_ROLES, REQUEST_STATUS
 
 api = Api(prefix='/api')
 
@@ -138,7 +138,7 @@ class AdRequestResource(Resource):
 
     @auth_required()
     @marshal_with(ad_request_fields)
-    def get(self, ad_request_id=None):
+    def get(self, ad_request_id=None, campaign_id=None):
         if current_user.has_role('admin'):
             if ad_request_id is None:
                 return [ad_request.to_dict() for ad_request in AdRequest.query.all()]
@@ -159,6 +159,12 @@ class AdRequestResource(Resource):
                     return {'message': 'Ad request not found or not authorized'}, 404
                 return ad_request.to_dict()
         else:  # Influencer
+            if campaign_id:
+                ad_request = AdRequest.query.filter_by(user_id=current_user.id, campaign_id=campaign_id).first()
+                if not ad_request:
+                    return {'message': 'Ad request not found or not authorized'}, 404
+                return ad_request.to_dict()
+            
             if ad_request_id is None:
                 ad_requests = AdRequest.query.filter_by(user_id=current_user.id).all()
                 return [ad_request.to_dict() for ad_request in ad_requests]
@@ -184,8 +190,7 @@ class AdRequestResource(Resource):
             user_id=current_user.id,
             messages=args.messages,
             requirements=args.requirements,
-            payment_amount=args.payment_amount,
-            status=args.status
+            payment_amount=args.payment_amount
             )
         db.session.add(ad_request)
         db.session.commit()
@@ -200,29 +205,33 @@ class AdRequestResource(Resource):
             return {'message': 'Ad request not found or not authorized'}, 404
         
         if current_user.has_role('influencer'):
-            for key, value in args.items():
-                if value is not None:
-                    setattr(ad_request, key, value)
+            if 'negotiation_notes' in args and ad_request.status == "negotiating":
+                notes = f"Influencer ID: {current_user.id} | Influencer Name: {current_user.name} | Date & Time: {str(datetime.now()).split('.')[0]}\n"
+                notes += f"Revised Amount: {args.revised_payment_amount}\n"
+                notes += f"{args.negotiation_notes}\n\n"
+                ad_request.negotiation_notes += notes
+            if 'revised_payment_amount' in args:
+                ad_request.revised_payment_amount = args.revised_payment_amount
 
         elif current_user.has_role('sponsor'):
-            if 'status' in args:
-                ad_request.status = args.status
             if 'negotiation_notes' in args:
-                ad_request.negotiation_notes += '\n'+ args.negotiation_notes
+                notes = f"Sponsor ID: {current_user.id} | Sponsor Name: {current_user.name} | Date & Time: {str(datetime.now()).split('.')[0]}\n"
+                notes += f"Revised Amount: {args.revised_payment_amount}\n"
+                if args.status == "accepted":
+                    notes += "Ad Request Accepted\n\n"
+                elif args.status == "rejected":
+                    notes += "Ad Request Rejected\n\n"
+                elif args.status == "negotiating" and ad_request.status == "pending":
+                    notes += "Started Negotiation\n\n"
+                else:
+                    notes += f"{args.negotiation_notes}\n\n"
+                ad_request.negotiation_notes += notes
+            if 'status' in args and args.status in REQUEST_STATUS:
+                ad_request.status = args.status
             if 'revised_payment_amount' in args:
                 ad_request.revised_payment_amount = args.revised_payment_amount
         db.session.commit()
         return {'message': 'Ad request updated'}, 200
-
-    @auth_required()
-    @roles_required('influencer')
-    def delete(self, ad_request_id):
-        ad_request = AdRequest.query.filter_by(user_id=current_user.id, id=ad_request_id).first()
-        if not ad_request:
-            return {'message': 'Ad request not found or not authorized'}, 404
-        db.session.delete(ad_request)
-        db.session.commit()
-        return {'message': 'Ad request deleted'}, 200
 
 class UserResource(Resource):
 
@@ -375,7 +384,7 @@ class CampaignStatusResource(Resource):
 
 
 api.add_resource(CampaignResource, '/campaign', '/campaign/<int:campaign_id>', '/campaign/apply/<int:campaign_id>')
-api.add_resource(AdRequestResource, '/ad_request', '/ad_request/<int:ad_request_id>')
+api.add_resource(AdRequestResource, '/ad-request', '/ad-request/<int:ad_request_id>', '/ad-request/c/<int:campaign_id>')
 api.add_resource(UserResource, '/user', '/user/<int:user_id>')
 api.add_resource(AdminResource, '/admin')
 

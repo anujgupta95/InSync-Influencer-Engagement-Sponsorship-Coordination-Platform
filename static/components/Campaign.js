@@ -1,8 +1,12 @@
 import store from "../utils/store.js";
+import router from "../utils/router.js";
 const Campaign = {
   template: `
     <div class="card mb-3">
-        <h5 v-if="header" class="card-header">{{header}}</h5>
+        <div v-if="header" class="d-flex card-header justify-content-between align-items-center">
+              <h5>{{header}}</h5>
+              <button @click="goBack" class="btn btn-outline-secondary me-2 ms-2 mb-1 w-25">Back</button>
+        </div>
         <div class="card-body">
             <div v-if="isEditing && isSponsor">
                 <div class="form-floating mb-2">
@@ -87,7 +91,7 @@ const Campaign = {
       return "";
     },
     applyUrl() {
-      return `/influencer/campaign/apply/${this.campaign.id}`;
+      return `/influencer/campaign/${this.campaign.id}`;
     },
   },
   methods: {
@@ -159,6 +163,9 @@ const Campaign = {
           "warning"
         );
       }
+    },
+    goBack() {
+      router.go(-1);
     },
   },
 };

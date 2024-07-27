@@ -180,7 +180,7 @@ const DashboardSponsor = {
     async fetchAdRequests() {
       const url = window.location.origin;
       try {
-        const response = await fetch(url + "/api/ad_request", {
+        const response = await fetch(url + "/api/ad-request", {
           headers: {
             "Content-type": "application/json",
           },

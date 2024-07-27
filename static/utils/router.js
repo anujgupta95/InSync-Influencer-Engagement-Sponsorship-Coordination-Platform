@@ -34,12 +34,12 @@ const routes = [
     meta: { requiresAuth: true, requiredRole: "influencer" },
   },
   {
-    path: "/influencer/campaign/apply/:id",
+    path: "/influencer/campaign/:id",
     component: CampaignDetails,
     meta: { requiresAuth: true, requiredRole: "influencer" },
   },
   {
-    path: `/ad-request/view/:id`,
+    path: `/ad-request/:id`,
     component: ViewAdRequest,
     meta: { requiresAuth: true },
   },
