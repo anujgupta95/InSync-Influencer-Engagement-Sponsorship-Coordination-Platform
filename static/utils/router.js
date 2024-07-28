@@ -10,14 +10,14 @@ import DashboardSponsor from "../pages/DashboardSponsor.js";
 import DashboardInfluencer from "../pages/DashboardInfluencer.js";
 import InfluencerCampaignDetails from "../pages/InfluencerCampaignDetails.js";
 import AddCampaign from "../pages/AddCampaign.js";
-import ViewAdRequest from "../pages/ViewAdRequest.js";
+import SponsorAdRequest from "../pages/SponsorAdRequest.js";
 
 const routes = [
   { path: "/", component: Home },
-  { path: "/login", component: Login },
-  { path: "/signup", component: Signup },
-  { path: "/profile", component: Profile },
-  { path: "/logout", component: Logout },
+  { path: "/login", component: Login, meta: { requiresAuth: false } },
+  { path: "/signup", component: Signup, meta: { requiresAuth: false } },
+  { path: "/profile", component: Profile, meta: { requiresAuth: true } },
+  { path: "/logout", component: Logout, meta: { requiresAuth: true } },
   {
     path: "/sponsor/dashboard",
     component: DashboardSponsor,
@@ -33,14 +33,14 @@ const routes = [
     component: DashboardInfluencer,
     meta: { requiresAuth: true, requiredRole: "influencer" },
   },
-  {
-    path: "/influencer/campaign/:id",
-    component: InfluencerCampaignDetails,
-    meta: { requiresAuth: true, requiredRole: "influencer" },
-  },
+  // {
+  //   path: "/influencer/campaign/:id",
+  //   component: InfluencerCampaignDetails,
+  //   meta: { requiresAuth: true, requiredRole: "influencer" },
+  // },
   {
     path: `/sponsor/ad-request/:id`,
-    component: ViewAdRequest,
+    component: SponsorAdRequest,
     meta: { requiresAuth: true, requiredRole: "sponsor" },
   },
 ];
@@ -55,12 +55,14 @@ router.beforeEach(async (to, from, next) => {
     await store.dispatch("checkLogin");
 
     const isLoggedIn = store.getters.isLoggedIn;
-    const userRole = store.getters.userRole;
 
     if (to.matched.some((record) => record.meta.requiresAuth)) {
       if (!isLoggedIn) {
         next("/login");
-      } else if (to.meta.requiredRole && to.meta.requiredRole !== userRole) {
+      } else if (
+        to.meta.requiredRole &&
+        to.meta.requiredRole !== store.getters.userRole
+      ) {
         next("/");
       } else {
         next();

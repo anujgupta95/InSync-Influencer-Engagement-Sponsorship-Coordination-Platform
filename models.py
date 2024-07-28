@@ -43,6 +43,13 @@ class User(db.Model, UserMixin):
         elif roles and roles[0].name == 'influencer':
             self.influencer_data = influencer_data or InfluencerData(category="", niche="", followers=0, user=self)
 
+    def to_dict(self):
+        return {
+            'id' : self.id,
+            'name': self.name,
+            'influencer_data': self.influencer_data.to_dict() if self.influencer_data else None
+        }
+
         
 
 class Role(db.Model, RoleMixin):
@@ -87,12 +94,12 @@ class Campaign(db.Model):
 class AdRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     campaign_id  = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
-    user_id  = db.Column(db.Integer, db.ForeignKey('user.id')) #Who created the ad request
+    user_id  = db.Column(db.Integer, db.ForeignKey('user.id')) #Influencer ID
     messages = db.Column(db.String)
     requirements = db.Column(db.String)
     payment_amount = db.Column(db.Float)
     revised_payment_amount = db.Column(db.Float)  # To track negotiation changes
-    negotiation_notes = db.Column(db.Text, default="")  # To keep track of negotiation details
+    negotiation_notes = db.Column(db.Text, default="")  # To keep track of every change
     status= db.Column(db.Enum(*REQUEST_STATUS, name='request_status'), default='pending', nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=dt.now())
     updated_at = db.Column(db.DateTime, nullable=False, default=dt.now(), onupdate=dt.now())

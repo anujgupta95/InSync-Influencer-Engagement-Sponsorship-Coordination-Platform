@@ -1,7 +1,7 @@
 from flask_restful import Resource, Api, reqparse, fields, marshal_with
 from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask import request, jsonify
-from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData
+from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData, UserRoles
 from extensions import db
 from datetime import date, datetime
 from env import ALL_ROLES, REQUEST_STATUS
@@ -212,31 +212,43 @@ class AdRequestResource(Resource):
                 ad_request.negotiation_notes += notes
             if 'revised_payment_amount' in args:
                 ad_request.revised_payment_amount = args.revised_payment_amount
-
+        
         elif current_user.has_role('sponsor'):
-            if 'negotiation_notes' in args:
-                notes = f"Sponsor ID: {current_user.id} | Sponsor Name: {current_user.name} | Date & Time: {str(datetime.now()).split('.')[0]}\n"
-                notes += f"Revised Amount: {args.revised_payment_amount}\n"
-                if args.status == "accepted":
-                    notes += "Ad Request Accepted\n\n"
-                elif args.status == "rejected":
-                    notes += "Ad Request Rejected\n\n"
-                elif args.status == "negotiating" and ad_request.status == "pending":
-                    notes += "Started Negotiation\n\n"
-                else:
+            ad_req = request.get_json()
+            if("id" in ad_req):
+                ad_request = AdRequest.query.get(ad_request_id)
+                ad_request.user_id = ad_req['user_id']
+                ad_request.messages = ad_req['messages']
+                ad_request.requirements = ad_req['requirements']
+                ad_request.payment_amount = ad_req['payment_amount']
+                ad_request.revised_payment_amount = None
+                ad_request.negotiation_notes = ''
+                ad_request.status = "pending"
+            else:
+                if 'negotiation_notes' in args:
+                    notes = f"Sponsor ID: {current_user.id} | Sponsor Name: {current_user.name} | Date & Time: {str(datetime.now()).split('.')[0]}\n"
+                    notes += f"Revised Amount: {args.revised_payment_amount}\n"
                     notes += f"{args.negotiation_notes}\n\n"
-                ad_request.negotiation_notes += notes
-            if 'status' in args and args.status in REQUEST_STATUS:
-                ad_request.status = args.status
-            if 'revised_payment_amount' in args:
-                ad_request.revised_payment_amount = args.revised_payment_amount
+                    ad_request.negotiation_notes += notes
+                if 'revised_payment_amount' in args:
+                    ad_request.revised_payment_amount = args.revised_payment_amount
+                    # if args.status == "accepted":
+                    #     notes += "Ad Request Accepted\n\n"
+                    # elif args.status == "rejected":
+                    #     notes += "Ad Request Rejected\n\n"
+                    # elif args.status == "negotiating" and ad_request.status == "pending":
+                    #     notes += "Started Negotiation\n\n"
+                    # else:
+                # if 'status' in args and args.status in REQUEST_STATUS:
+                #     ad_request.status = args.status
         db.session.commit()
         return {'message': 'Ad request updated'}, 200
     
     @auth_required()
     @roles_required('sponsor')
     def delete(self, ad_request_id):
-        ad_request = AdRequest.query.filter_by(id=ad_request_id).first()
+        campaign_ids = [campaign.id for campaign in current_user.campaigns]
+        ad_request = AdRequest.query.filter_by(AdRequest.campaign_id.in_(campaign_ids), id=ad_request_id).first()
         if not ad_request:
             return {'message': 'Ad request not found or not authorized'}, 404
         db.session.delete(ad_request)
@@ -259,10 +271,19 @@ class UserResource(Resource):
         if not current_user.is_authenticated:
             return {'error': 'Please login first'}, 401
         
-        if user_id is None:
-            user = User.query.get(current_user.id)
-        else:
+        if current_user.has_role('sponsor'):
+            if user_id is None:
+                users = User.query.join(UserRoles).join(Role).filter(Role.name == 'influencer', User.active==1, User.flagged==0).all()
+                return [user.to_dict() for user in users]
+            
             user = User.query.get(user_id)
+            if not user or user.roles[0]!='influencer' or not user.active or user.flagged:
+                return {'error': 'Influencer not found'}, 404
+            return user.to_dict()
+
+        # if user_id is None:
+        user = User.query.get(current_user.id)
+            
         if not user:
             return {'error': 'User not found'}, 404
         
