@@ -9,6 +9,7 @@ import Logout from "../pages/Logout.js";
 import DashboardSponsor from "../pages/DashboardSponsor.js";
 import DashboardInfluencer from "../pages/DashboardInfluencer.js";
 import InfluencerCampaignDetails from "../pages/InfluencerCampaignDetails.js";
+import SponsorCampaignDetails from "../pages/SponsorCampaignDetails.js";
 import AddCampaign from "../pages/AddCampaign.js";
 import SponsorAdRequest from "../pages/SponsorAdRequest.js";
 
@@ -29,6 +30,16 @@ const routes = [
     meta: { requiresAuth: true, requiredRole: "sponsor" },
   },
   {
+    path: "/sponsor/campaign/:id",
+    component: SponsorCampaignDetails,
+    meta: { requiresAuth: true, requiredRole: "sponsor" },
+  },
+  {
+    path: `/sponsor/ad-request/:id`,
+    component: SponsorAdRequest,
+    meta: { requiresAuth: true, requiredRole: "sponsor" },
+  },
+  {
     path: "/influencer/dashboard",
     component: DashboardInfluencer,
     meta: { requiresAuth: true, requiredRole: "influencer" },
@@ -38,11 +49,6 @@ const routes = [
   //   component: InfluencerCampaignDetails,
   //   meta: { requiresAuth: true, requiredRole: "influencer" },
   // },
-  {
-    path: `/sponsor/ad-request/:id`,
-    component: SponsorAdRequest,
-    meta: { requiresAuth: true, requiredRole: "sponsor" },
-  },
 ];
 
 const router = new VueRouter({

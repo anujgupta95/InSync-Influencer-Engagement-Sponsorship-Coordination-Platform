@@ -5,30 +5,32 @@ const SponsorAdRequest = {
     <div>
         <div class="container mt-4" v-if="adRequest && campaign">
           <div class="d-flex flex-wrap">
-            <div class="col-12 mb-0">
+            <div class="col-12 ">
               <campaign :campaign="campaign" @delete="goBack" header="Campaign Details" class="card"></campaign>
             </div>
-            <div class="col-12 mb-0">
-              <div class="card ms-1 mb-2">
+            <div class="col-12 mt-1">
+              <div class="card">
                 <h5 class="card-header">Influencer Details</h5>
                 <div class="card-body">
-                  <div>
+                  <div v-if="influencer.influencer_data">
                     <p class="card-text"><strong>Name:</strong> {{ influencer.name }}</p>
                     <p class="card-text"><strong>Category:</strong> {{ influencer.influencer_data.category }}</p>
                     <p class="card-text"><strong>Niche:</strong> {{ influencer.influencer_data.niche }}</p>
                     <p class="card-text"><strong>Followers:</strong> {{ influencer.influencer_data.followers }}</p>
                   </div>
+                  <p v-else class="card-text"><strong>No influencer choosen</strong></p>
                 </div>
               </div>
             </div>
           </div>
-          <div class="card rounded shadow mb-2">
+          <div class="card rounded shadow mt-4">
             <h5 class="card-header">Ad Request Details</h5>
             <div class="card-body">
                 <div>
                   <div v-if="editRequest" class="mt-4 mb-2">
                         <div class="form-floating mt-2">
                           <select v-model="adRequest.user_id" class="form-select" id="user_id">
+                            <option value=0>No Influencer</option>
                             <option v-for="influencer in influencers" :key="influencer.id" :value="influencer.id">
                               {{ influencer.id }} | {{ influencer.name }}
                             </option>
@@ -50,9 +52,8 @@ const SponsorAdRequest = {
                           <label for="payment_amount">Payment Amount</label>
                         </div>
                         <div class="form-floating mt-2">
-                          <select v-model="adRequest.status" class="form-select" id="status">
-                            <!--<option value="negotiating">Negotiating</option>-->
-                            <option value="pending">Pending</option>
+                          <select v-model="adRequest.status" class="form-select" id="status" disabled>
+                            <option value="pending" selected>Pending</option>
                           </select>
                           <label for="status">Status</label>
                         </div>
@@ -161,7 +162,7 @@ const SponsorAdRequest = {
         });
         this.editRequest = false;
       } catch (error) {
-        console.error(error, error);
+        console.error(error);
         window.triggerToast("Error updating negotiation", "danger");
       }
 

@@ -92,7 +92,7 @@ const DashboardSponsor = {
         
         <div class="d-flex row">
           <Campaign v-for="campaign in filteredCampaigns" :key="campaign.id" :campaign="campaign"
-            @delete="removeCampaign" @update="handleUpdate" class="shadow col-12 col-sm-6 col-md-6 col-lg-6 mb-2"/>
+            @delete="removeCampaign" @update="handleUpdate" :showCreateAdRequestButton='true' class="shadow col-12 col-sm-6 col-md-6 col-lg-4 mb-2"/>
         </div>
       </div>  
     </div>
@@ -166,11 +166,7 @@ const DashboardSponsor = {
     async fetchCampaigns() {
       const url = window.location.origin;
       try {
-        const response = await fetch(url + "/api/campaign", {
-          headers: {
-            "Content-type": "application/json",
-          },
-        });
+        const response = await fetch(url + "/api/campaign");
         const data = await response.json();
         this.campaigns = data;
       } catch (error) {

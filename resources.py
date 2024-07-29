@@ -129,6 +129,7 @@ class AdRequestResource(Resource):
     }
 
     parser.add_argument('campaign_id', type=int)
+    parser.add_argument('user_id', type=int)
     parser.add_argument('messages', type=str)
     parser.add_argument('requirements', type=str)
     parser.add_argument('payment_amount', type=float)
@@ -145,9 +146,15 @@ class AdRequestResource(Resource):
             else:
                 ad_request = AdRequest.query.get(ad_request_id)
                 if not ad_request:
-                    return {'message': 'Ad request not found'}, 404
+                    return {'error': 'Ad request not found'}, 404
                 return ad_request.to_dict()
         elif current_user.has_role('sponsor'):
+            if campaign_id:
+                if Campaign.query.get(campaign_id) in current_user.campaigns:
+                    ad_requests = AdRequest.query.filter_by(campaign_id=campaign_id).all()
+                    return [ad_request.to_dict() for ad_request in ad_requests]
+                return {'error': 'Cannot access others campaign details'}, 404
+            
             if ad_request_id is None:
                 # campaign_ids = [campaign.id for campaign in current_user.campaigns]
                 # ad_requests = AdRequest.query.filter(AdRequest.campaign_id.in_(campaign_ids)).all()
@@ -156,42 +163,36 @@ class AdRequestResource(Resource):
             else:
                 ad_request = AdRequest.query.join(Campaign).filter(Campaign.user_id == current_user.id, AdRequest.id == ad_request_id).first()
                 if not ad_request:
-                    return {'message': 'Ad request not found or not authorized'}, 404
+                    return {'error': 'Ad request not found or not authorized'}, 404
                 return ad_request.to_dict()
         else:  # Influencer
-            if campaign_id:
-                ad_request = AdRequest.query.filter_by(user_id=current_user.id, campaign_id=campaign_id).first()
-                if not ad_request:
-                    return {'message': 'Ad request not found or not authorized'}, 404
-                return ad_request.to_dict()
-            
             if ad_request_id is None:
                 ad_requests = AdRequest.query.filter_by(user_id=current_user.id).all()
                 return [ad_request.to_dict() for ad_request in ad_requests]
             else:
                 ad_request = AdRequest.query.filter_by(user_id=current_user.id, id=ad_request_id).first()
                 if not ad_request:
-                    return {'message': 'Ad request not found or not authorized'}, 404
+                    return {'error': 'Ad request not found or not authorized'}, 404
                 return ad_request.to_dict()
 
     @auth_required()
-    @roles_required('influencer')
+    @roles_required('sponsor')
     def post(self):
-        args = self.parser.parse_args()
-        campaign_id = args.campaign_id
-        campaign = Campaign.query.get(campaign_id)
+        args = self.parser.parse_args() 
+        campaign = Campaign.query.get(args.campaign_id)
         if not campaign:
             return {'error': 'Campaign does not exist'}, 400
-        if AdRequest.query.filter_by(campaign_id=campaign_id, user_id=current_user.id).first():
-            return {'error': 'You have already applied for this campaign. Please wait until sponsor accepts your request.'}, 400
+        if AdRequest.query.filter_by(campaign_id=campaign.id, user_id=args.user_id).first():
+            return {'error': 'This user has already an active request for this campaign'}, 400
         
         ad_request = AdRequest(
-            campaign_id=campaign_id,
-            user_id=current_user.id,
+            campaign_id=campaign.id,
+            user_id=args.user_id,
             messages=args.messages,
             requirements=args.requirements,
-            payment_amount=args.payment_amount
-            )
+            payment_amount=args.payment_amount,
+            status="pending",
+        )
         db.session.add(ad_request)
         db.session.commit()
         return {'message': 'Ad request created'}, 201
@@ -215,6 +216,7 @@ class AdRequestResource(Resource):
         
         elif current_user.has_role('sponsor'):
             ad_req = request.get_json()
+            print(ad_req)
             if("id" in ad_req):
                 ad_request = AdRequest.query.get(ad_request_id)
                 ad_request.user_id = ad_req['user_id']
@@ -248,7 +250,7 @@ class AdRequestResource(Resource):
     @roles_required('sponsor')
     def delete(self, ad_request_id):
         campaign_ids = [campaign.id for campaign in current_user.campaigns]
-        ad_request = AdRequest.query.filter_by(AdRequest.campaign_id.in_(campaign_ids), id=ad_request_id).first()
+        ad_request = AdRequest.query.filter(AdRequest.campaign_id.in_(campaign_ids), AdRequest.id==ad_request_id).first()
         if not ad_request:
             return {'message': 'Ad request not found or not authorized'}, 404
         db.session.delete(ad_request)

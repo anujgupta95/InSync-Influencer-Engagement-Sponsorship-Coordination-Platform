@@ -57,6 +57,7 @@ const Campaign = {
                 <div v-if="isSponsor">
                     <button @click="editCampaign" class="btn btn-warning w-48">Edit</button>
                     <button @click="deleteCampaign" class="btn btn-danger w-50">Delete</button>
+                    <router-link :to="viewDetailsUrl" v-if="showCreateAdRequestButton" class="btn btn-success w-100 mt-1">Create Ad Request</router-link >
                 </div>
                 <div v-else>
                     <router-link :to="applyUrl" class="btn btn-warning w-100">View</router-link >
@@ -79,6 +80,10 @@ const Campaign = {
     header: {
       type: String,
     },
+    showCreateAdRequestButton: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     isSponsor() {
@@ -90,8 +95,8 @@ const Campaign = {
       }
       return "";
     },
-    applyUrl() {
-      return `/influencer/campaign/${this.campaign.id}`;
+    viewDetailsUrl() {
+      return `/sponsor/campaign/${this.campaign.id}`;
     },
   },
   methods: {

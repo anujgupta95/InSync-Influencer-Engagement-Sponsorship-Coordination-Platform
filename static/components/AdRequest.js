@@ -2,7 +2,7 @@ import router from "../utils/router.js";
 const AdRequest = {
   template: `
       <tr :class="trClass">
-        <th>{{ adRequest.campaign_id }}</th>
+        <th v-if="!hideCampaignId">{{ adRequest.campaign_id }}</th>
         <td >{{ adRequest.user_id }}</td>
         <td>{{ adRequest.messages }}</td>
         <td>{{ adRequest.requirements }}</td>
@@ -17,6 +17,10 @@ const AdRequest = {
     adRequest: {
       type: Object,
       required: true,
+    },
+    hideCampaignId: {
+      type: Boolean,
+      default: false,
     },
   },
   computed: {
