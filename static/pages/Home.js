@@ -98,8 +98,10 @@ const Home = {
       const url = window.location.origin;
       try {
         const response = await fetch(url + "/api/campaign");
-        const data = await response.json();
-        this.campaigns = data;
+        if (response.ok) {
+          const data = await response.json();
+          this.campaigns = data;
+        }
       } catch (error) {
         window.triggerToast(error, "danger");
         // console.error("Failed to fetch campaigns:", error);

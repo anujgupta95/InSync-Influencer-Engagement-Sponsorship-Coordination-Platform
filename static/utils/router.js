@@ -1,17 +1,20 @@
 Vue.use(VueRouter);
 
 import store from "./store.js";
+
 import Home from "../pages/Home.js";
 import Login from "../pages/Login.js";
 import Signup from "../pages/Signup.js";
 import Profile from "../pages/Profile.js";
 import Logout from "../pages/Logout.js";
-import DashboardSponsor from "../pages/DashboardSponsor.js";
-import DashboardInfluencer from "../pages/DashboardInfluencer.js";
-import InfluencerCampaignDetails from "../pages/InfluencerCampaignDetails.js";
-import SponsorCampaignDetails from "../pages/SponsorCampaignDetails.js";
-import AddCampaign from "../pages/AddCampaign.js";
-import SponsorAdRequest from "../pages/SponsorAdRequest.js";
+
+import DashboardSponsor from "../pages/sponsor/DashboardSponsor.js";
+import SponsorCampaignDetails from "../pages/sponsor/SponsorCampaignDetails.js";
+import AddCampaign from "../pages/sponsor/AddCampaign.js";
+import SponsorAdRequest from "../pages/sponsor/SponsorAdRequest.js";
+
+import DashboardInfluencer from "../pages/inluencer/DashboardInfluencer.js";
+import InfluencerCampaignDetails from "../pages/inluencer/InfluencerCampaignDetails.js";
 
 const routes = [
   { path: "/", component: Home },
