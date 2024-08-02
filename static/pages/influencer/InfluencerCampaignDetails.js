@@ -1,4 +1,4 @@
-import router from "../utils/router.js";
+import router from "../../utils/router.js";
 
 const InfluencerCampaignDetails = {
   template: `

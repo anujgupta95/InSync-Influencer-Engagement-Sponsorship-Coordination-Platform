@@ -1,6 +1,6 @@
-import router from "../utils/router.js";
-import AdRequest from "../components/AdRequest.js";
-import Campaign from "../components/Campaign.js";
+import router from "../../utils/router.js";
+import AdRequest from "../../components/AdRequest.js";
+import Campaign from "../../components/Campaign.js";
 const SponsorCampaignDetails = {
   template: `
     <div class="container mt-2">

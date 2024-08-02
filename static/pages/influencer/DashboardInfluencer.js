@@ -1,5 +1,5 @@
-import Campaign from "../components/Campaign.js";
-import router from "../utils/router.js";
+import Campaign from "../../components/Campaign.js";
+import router from "../../utils/router.js";
 const DashboardInfluencer = {
   template: `
     <div>
