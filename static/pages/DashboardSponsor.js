@@ -1,5 +1,5 @@
-import Campaign from "../../components/Campaign.js";
-import AdRequest from "../../components/AdRequest.js";
+import Campaign from "../components/Campaign.js";
+import AdRequest from "../components/AdRequest.js";
 const DashboardSponsor = {
   template: `
     <div>

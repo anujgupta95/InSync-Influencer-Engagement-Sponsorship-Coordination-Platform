@@ -60,7 +60,7 @@ const Campaign = {
                     <router-link :to="viewDetailsUrl" v-if="showCreateAdRequestButton" class="btn btn-success w-100 mt-1">Create Ad Request</router-link >
                 </div>
                 <div v-else>
-                    <router-link :to="applyUrl" class="btn btn-warning w-100">View</router-link >
+                    <router-link :to="viewDetailsUrl" class="btn btn-warning w-100">View</router-link >
                 </div>
             </div>
         </div>

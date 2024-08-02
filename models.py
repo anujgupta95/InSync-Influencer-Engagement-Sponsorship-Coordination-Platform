@@ -136,7 +136,7 @@ class InfluencerData(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
     category = db.Column(db.String)
     niche = db.Column(db.String)
-    followers = db.Column(db.Integer)
+    followers = db.Column(db.Float)
 
     def to_dict(self):
         return {
