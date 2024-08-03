@@ -1,4 +1,5 @@
 import router from "../../utils/router.js";
+import AdRequest from "../../components/AdRequest.js";
 
 const InfluencerCampaignDetails = {
   template: `
@@ -17,64 +18,63 @@ const InfluencerCampaignDetails = {
             <p><strong>Goals:</strong> {{ campaign.goals }}</p>
           </div>
         </div>
-        
-        
-        <div>
-          <div>
-            <!-- Display ad-request form if the user hasn't applied yet -->
-            <div v-if="!hasApplied" class="mt-4 mb-2">
-              <div class="card shadow">
-                <div class="card-body">
-                  <h4>Apply for this Campaign</h4>
-                  <div class="form-floating mt-2">
-                    <textarea v-model="submitAdRequestData.messages" class="form-control" placeholder="Enter your messages" id="messages" rows="3"></textarea>
-                    <label for="messages">Messages</label>
-                  </div>
-                  <div class="form-floating mt-2">
-                    <textarea v-model="submitAdRequestData.requirements" class="form-control" placeholder="Enter your requirements" id="requirements" rows="3"></textarea>
-                    <label for="requirements">Requirements</label>
-                  </div>
-                  <div class="form-floating mt-2">
-                    <input v-model="submitAdRequestData.payment_amount" type="number" class="form-control" id="payment_amount" placeholder="Enter payment amount">
-                    <label for="payment_amount">Payment Amount</label>
-                  </div>
-                  <button type="submit" @click="submitAdRequest" class="btn btn-success w-100 mt-3">Submit Request</button>
-                </div>
-              </div>
+
+        <div class='card mt-2'>
+          <p class="card-header"> Active Ad Requests</p>
+          <div class="card-body">
+            <div v-if="!adRequest.status">
+                <p class="card-text"><strong>No ad requests found</strong></p>
             </div>
-
-            <div v-if="adRequest && hasApplied" class="card rounded shadow mb-2 mt-2">
-              <p class="card-header">Ad Request Details</p>
-              <div class="card-body">
-                <div>
-                  <div class="mb-3">
-                      <p><strong>Messages:</strong> {{ adRequest.messages }}</p>
-                      <p><strong>Requirements:</strong> {{ adRequest.requirements }}</p>
-                      <p><strong>Payment Amount:</strong> {{ adRequest.payment_amount }}</p>
-                      <p><strong>Status:</strong> {{ adRequest.status }}</p>
-                      <h4>Notes</h4>
-                      <div class="mb-3">
-                      <textarea v-model="adRequest.negotiation_notes" class="form-control" rows="10" placeholder="Add negotiation notes" disabled></textarea>
-                      </div>
-                      <p><strong>Revised Payment Amount:</strong> {{ adRequest.revised_payment_amount }}</p>
-                  </div>
-
-                  <div v-if="adRequest.status === 'negotiating'" class="mt-4">
-                      <h4>Message</h4>
-                      <div class="mb-3">
-                      <textarea v-model="negotiationNotes" class="form-control" rows="3" placeholder="Add message"></textarea>
-                      </div>
-                      <div class="mb-3">
-                      <input v-model="revisedPaymentAmount" type="number" class="form-control" placeholder="Revised Payment Amount" />
-                      </div>
-                  </div>
-                  <button v-if="adRequest.status === 'negotiating'" @click="updateStatus" class="btn btn-warning w-20 me-2">Update Negotiation</button>
-                  
-                </div>
-              </div>
+            <div v-else>
+              <table class="text-center rounded col-12">
+                <thead>
+                  <tr>
+                    <th>Influencer ID</th>
+                    <th>Messages</th>
+                    <th>Requirements</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <AdRequest :adRequest="adRequest" :hideCampaignId="true" class="col-12"/>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
+
+        <!--<div v-if="adRequest && hasApplied" class="card rounded shadow mb-2 mt-2">
+          <p class="card-header">Ad Request Details</p>
+          <div class="card-body">
+            <div>
+              <div class="mb-3">
+                  <p><strong>Messages:</strong> {{ adRequest.messages }}</p>
+                  <p><strong>Requirements:</strong> {{ adRequest.requirements }}</p>
+                  <p><strong>Payment Amount:</strong> {{ adRequest.payment_amount }}</p>
+                  <p><strong>Status:</strong> {{ adRequest.status }}</p>
+                  <h4>Notes</h4>
+                  <div class="mb-3">
+                  <textarea v-model="adRequest.negotiation_notes" class="form-control" rows="10" placeholder="Add negotiation notes" disabled></textarea>
+                  </div>
+                  <p><strong>Revised Payment Amount:</strong> {{ adRequest.revised_payment_amount }}</p>
+              </div>
+
+              <div v-if="adRequest.status === 'negotiating'" class="mt-4">
+                  <h4>Message</h4>
+                  <div class="mb-3">
+                  <textarea v-model="negotiationNotes" class="form-control" rows="3" placeholder="Add message"></textarea>
+                  </div>
+                  <div class="mb-3">
+                  <input v-model="revisedPaymentAmount" type="number" class="form-control" placeholder="Revised Payment Amount" />
+                  </div>
+              </div>
+              <button v-if="adRequest.status === 'negotiating'" @click="updateStatus" class="btn btn-warning w-20 me-2">Update Negotiation</button>
+            </div>
+          </div>
+        </div>-->
+
       </div>
     </div>
   `,
@@ -87,6 +87,9 @@ const InfluencerCampaignDetails = {
       negotiationNotes: "",
       revisedPaymentAmount: null,
     };
+  },
+  components: {
+    AdRequest,
   },
   async created() {
     await this.updateInfo();

@@ -1,4 +1,5 @@
 import router from "../utils/router.js";
+import store from "../utils/store.js";
 const AdRequest = {
   template: `
       <tr :class="trClass">
@@ -35,7 +36,11 @@ const AdRequest = {
   },
   methods: {
     async viewAdRequest() {
-      router.push(`/sponsor/ad-request/${this.adRequest.id}`);
+      if (store.getters.userRole == "sponsor") {
+        router.push(`/sponsor/ad-request/${this.adRequest.id}`);
+      } else {
+        router.push(`/influencer/ad-request/${this.adRequest.id}`);
+      }
     },
   },
 };

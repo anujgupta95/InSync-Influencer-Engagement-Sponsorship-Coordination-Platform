@@ -14,6 +14,7 @@ import SponsorAdRequest from "../pages/sponsor/SponsorAdRequest.js";
 
 import DashboardInfluencer from "../pages/influencer/DashboardInfluencer.js";
 import InfluencerCampaignDetails from "../pages/influencer/InfluencerCampaignDetails.js";
+import InfluencerAdRequest from "../pages/influencer/InfluencerAdRequest.js";
 
 const routes = [
   { path: "/", component: Home },
@@ -46,11 +47,16 @@ const routes = [
     component: DashboardInfluencer,
     meta: { requiresAuth: true, requiredRole: "influencer" },
   },
-  // {
-  //   path: "/influencer/campaign/:id",
-  //   component: InfluencerCampaignDetails,
-  //   meta: { requiresAuth: true, requiredRole: "influencer" },
-  // },
+  {
+    path: "/influencer/campaign/:id",
+    component: InfluencerCampaignDetails,
+    meta: { requiresAuth: true, requiredRole: "influencer" },
+  },
+  {
+    path: `/influencer/ad-request/:id`,
+    component: InfluencerAdRequest,
+    meta: { requiresAuth: true, requiredRole: "influencer" },
+  },
 ];
 
 const router = new VueRouter({

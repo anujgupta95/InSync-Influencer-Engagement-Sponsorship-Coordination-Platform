@@ -14,7 +14,7 @@ const DashboardInfluencer = {
             <ul v-else>
               <li v-for="adRequest in adRequests" :key="adRequest.id">
                 <p>{{ adRequest.messages }}</p>
-                <button class="btn btn-info" @click="viewRequestDetails(adRequest.campaign_id)">View Details</button>
+                <button class="btn btn-info" @click="viewRequestDetails(adRequest.id)">View Details</button>
               </li>
             </ul>
           </div>
@@ -48,7 +48,7 @@ const DashboardInfluencer = {
       }
     },
     viewRequestDetails(campaignId) {
-      router.push(`/influencer/campaign/${campaignId}`);
+      router.push(`/influencer/ad-request/${campaignId}`);
     },
   },
 };

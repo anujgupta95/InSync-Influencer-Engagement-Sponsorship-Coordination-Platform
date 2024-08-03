@@ -4,7 +4,8 @@ from flask import request, jsonify
 from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData, UserRoles
 from extensions import db
 from datetime import date, datetime
-from env import ALL_ROLES, REQUEST_STATUS
+from env import ALL_ROLES
+from sqlalchemy import or_
 
 api = Api(prefix='/api')
 
@@ -45,20 +46,25 @@ class CampaignResource(Resource):
             if campaign_id is None:
                 campaigns =  Campaign.query.filter_by(user_id=current_user.id).all()
                 return [campaign.to_dict() for campaign in campaigns]
-            else:
-                campaign = Campaign.query.filter_by(user_id=current_user.id, id=campaign_id).first()
-                if not campaign:
-                    return {'message': 'Campaign not found or not authorized'}, 404
-                return campaign.to_dict()
+
+            campaign = Campaign.query.filter_by(user_id=current_user.id, id=campaign_id).first()
+            if not campaign:
+                return {'message': 'Campaign not found or not authorized'}, 404
+            return campaign.to_dict()
         else:
             if campaign_id is None:
                 campaigns =  Campaign.query.filter_by(visibility='public').all()
                 return [campaign.to_dict() for campaign in campaigns]
-            else:
-                campaign = Campaign.query.filter_by(id=campaign_id, visibility='public').first()
-                if not campaign:
-                    return {'message': 'Campaign not found or not authorized'}, 404
+            
+            campaign = Campaign.query.get(campaign_id)
+            if not campaign:
+                return {'message': 'Campaign not found or not authorized'}, 404
+            if campaign.visibility == 'public':
                 return campaign.to_dict()
+            if AdRequest.query.filter_by(user_id=current_user.id, campaign_id=campaign.id).first():
+                return campaign.to_dict()
+            return {'message': 'Campaign not found or not authorized'}, 404
+                
     
     @auth_required()
     @roles_required('sponsor')
@@ -166,11 +172,25 @@ class AdRequestResource(Resource):
                     return {'error': 'Ad request not found or not authorized'}, 404
                 return ad_request.to_dict()
         else:  # Influencer
+            if campaign_id:
+                if Campaign.query.get(campaign_id):
+                    ad_request = AdRequest.query.filter(AdRequest.campaign_id == campaign_id, AdRequest.user_id == current_user.id).first()
+                    if not ad_request:
+                        ad_request = AdRequest.query.filter(AdRequest.campaign_id == campaign_id, or_(AdRequest.user_id == 0,AdRequest.user_id.is_(None))).first()
+                     
+                    if not ad_request:
+                        return {'error': 'Ad request not found or not authorized'}, 404
+                    
+                    return ad_request.to_dict()
+                return {'error': 'Ad request not found or not authorized'}, 404
+            
             if ad_request_id is None:
                 ad_requests = AdRequest.query.filter_by(user_id=current_user.id).all()
                 return [ad_request.to_dict() for ad_request in ad_requests]
             else:
-                ad_request = AdRequest.query.filter_by(user_id=current_user.id, id=ad_request_id).first()
+                # ad_request = AdRequest.query.filter_by(user_id=current_user.id, id=ad_request_id).first()
+                ad_request = AdRequest.query.filter(AdRequest.id==ad_request_id,
+                                                    or_(AdRequest.user_id == 0,AdRequest.user_id == current_user.id,AdRequest.user_id.is_(None))).first()
                 if not ad_request:
                     return {'error': 'Ad request not found or not authorized'}, 404
                 return ad_request.to_dict()
@@ -206,17 +226,45 @@ class AdRequestResource(Resource):
             return {'message': 'Ad request not found or not authorized'}, 404
         
         if current_user.has_role('influencer'):
-            if 'negotiation_notes' in args and ad_request.status == "negotiating":
-                notes = f"Influencer ID: {current_user.id} | Influencer Name: {current_user.name} | Date & Time: {str(datetime.now()).split('.')[0]}\n"
-                notes += f"Revised Amount: {args.revised_payment_amount}\n"
-                notes += f"{args.negotiation_notes}\n\n"
+            new_ad_request_flag = False
+            if ad_request.user_id in [0, None]:
+                new_ad_request = AdRequest(
+                    campaign_id=ad_request.campaign_id,
+                    user_id=current_user.id,
+                    messages=ad_request.messages,
+                    requirements=ad_request.requirements,
+                    payment_amount=ad_request.payment_amount
+                )
+                db.session.add(new_ad_request)
+                ad_request = new_ad_request
+                new_ad_request_flag = True
+
+            notes = f"Influencer ID: {current_user.id} | Influencer Name: {current_user.name} | Date & Time: {str(datetime.now()).split('.')[0]}\n"
+            if ad_request.status in ['pending', 'negotiating']:
+                if args.status in ['accepted', 'rejected']:
+                    notes += f"Ad Request {args.status.capitalize()}\n\n"
+                    ad_request.status = args.status
+                    
+                if ad_request.status == 'negotiating':
+                    if 'revised_payment_amount' in args:
+                        ad_request.revised_payment_amount = args.revised_payment_amount
+                        notes += f"Revised Amount: {args.revised_payment_amount}\n"
+
+                    if 'negotiation_notes' in args:
+                        notes += f"{args.negotiation_notes}\n\n"
+                    
+                elif args.status == 'negotiating' and ad_request.status == 'pending':
+                    notes += "Started Negotiation\n\n"
+                    ad_request.status = 'negotiating'
+
                 ad_request.negotiation_notes += notes
-            if 'revised_payment_amount' in args:
-                ad_request.revised_payment_amount = args.revised_payment_amount
-        
+            if new_ad_request_flag:
+                db.session.commit()
+                print(new_ad_request.id)
+                return {'message': f'Public Ad Request {args.status}', "id":new_ad_request.id}, 200
+            
         elif current_user.has_role('sponsor'):
             ad_req = request.get_json()
-            print(ad_req)
             if("id" in ad_req):
                 ad_request = AdRequest.query.get(ad_request_id)
                 ad_request.user_id = ad_req['user_id']

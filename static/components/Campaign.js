@@ -96,7 +96,10 @@ const Campaign = {
       return "";
     },
     viewDetailsUrl() {
-      return `/sponsor/campaign/${this.campaign.id}`;
+      if (this.isSponsor) {
+        return `/sponsor/campaign/${this.campaign.id}`;
+      }
+      return `/influencer/campaign/${this.campaign.id}`;
     },
   },
   methods: {
