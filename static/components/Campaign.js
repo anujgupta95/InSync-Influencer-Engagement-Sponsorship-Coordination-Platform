@@ -59,7 +59,7 @@ const Campaign = {
                     <button @click="deleteCampaign" class="btn btn-danger w-50">Delete</button>
                     <router-link :to="viewDetailsUrl" v-if="showCreateAdRequestButton" class="btn btn-success w-100 mt-1">Create Ad Request</router-link >
                 </div>
-                <div v-else>
+                <div v-else-if="isInlfluencer">
                     <router-link :to="viewDetailsUrl" class="btn btn-warning w-100">View</router-link >
                 </div>
             </div>
@@ -88,6 +88,9 @@ const Campaign = {
   computed: {
     isSponsor() {
       return store.getters.userRole === "sponsor";
+    },
+    isInlfluencer() {
+      return store.getters.userRole === "influencer";
     },
     date_error() {
       if (this.editcampaignData.start_date > this.editcampaignData.end_date) {

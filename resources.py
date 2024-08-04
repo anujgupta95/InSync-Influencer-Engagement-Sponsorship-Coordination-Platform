@@ -36,12 +36,13 @@ class CampaignResource(Resource):
     def get(self, campaign_id=None):
         if current_user.has_role('admin'):
             if campaign_id is None:
-                return [campaign.to_dict() for campaign in Campaign.query.all()]
-            else:
-                campaign = Campaign.query.get(campaign_id)
-                if not campaign:
-                    return {'message': 'Campaign not found'}, 404
-                return campaign.to_dict()
+                campaigns = Campaign.query.all()
+                return [campaign.to_dict() for campaign in campaigns]
+            campaign = Campaign.query.get(campaign_id)
+            if not campaign:
+                return {'message': 'Campaign not found'}, 404
+            return campaign.to_dict()
+        
         elif current_user.has_role('sponsor'):
             if campaign_id is None:
                 campaigns =  Campaign.query.filter_by(user_id=current_user.id).all()
@@ -51,6 +52,7 @@ class CampaignResource(Resource):
             if not campaign:
                 return {'message': 'Campaign not found or not authorized'}, 404
             return campaign.to_dict()
+        
         else:
             if campaign_id is None:
                 campaigns =  Campaign.query.filter_by(visibility='public').all()
@@ -145,15 +147,16 @@ class AdRequestResource(Resource):
 
     @auth_required()
     @marshal_with(ad_request_fields)
-    def get(self, ad_request_id=None, campaign_id=None):
+    def get(self, ad_request_id=None, campaign_id=None):          
         if current_user.has_role('admin'):
             if ad_request_id is None:
                 return [ad_request.to_dict() for ad_request in AdRequest.query.all()]
-            else:
-                ad_request = AdRequest.query.get(ad_request_id)
-                if not ad_request:
-                    return {'error': 'Ad request not found'}, 404
-                return ad_request.to_dict()
+
+            ad_request = AdRequest.query.get(ad_request_id)
+            if not ad_request:
+                return {'error': 'Ad request not found'}, 404
+            return ad_request.to_dict()
+        
         elif current_user.has_role('sponsor'):
             if campaign_id:
                 if Campaign.query.get(campaign_id) in current_user.campaigns:
@@ -309,22 +312,38 @@ class UserResource(Resource):
 
     parser = reqparse.RequestParser()
     parser.add_argument('name', type=str, required=True, help='Name cannot be blank')
-    # parser.add_argument('role', type=str, required=True, help='Role cannot be null')
     parser.add_argument('request_role_update', type=str, help='Requested role change')
-
-    # Define optional nested structures for role-specific data
     parser.add_argument('sponsor_data', type=dict, location='json')
     parser.add_argument('influencer_data', type=dict, location='json')
 
     @auth_required()
-    def get(self, user_id=None):
+    def get(self, user_id=None, all=""):
         if not current_user.is_authenticated:
             return {'error': 'Please login first'}, 401
         
-        if current_user.has_role('sponsor'):
+        if current_user.has_role('admin'):
             if user_id is None:
-                users = User.query.join(UserRoles).join(Role).filter(Role.name == 'influencer', User.active==1, User.flagged==0).all()
+                users = User.query.all()
                 return [user.to_dict() for user in users]
+            
+            user = User.query.get(user_id)
+            if not user:
+                return {'error': 'User not found'}, 404
+            return user.to_dict()
+                
+        
+        elif current_user.has_role('sponsor'):
+            if all=="all":
+                all_users = User.query.filter_by(active=True, flagged=False).all()
+                users = [user.to_dict() for user in all_users if user.has_role('influencer')]
+                return users
+            if user_id is None:
+                return current_user.to_dict()
+                # all_users = User.query.filter_by(active=True, flagged=False).all()
+                # users = [user for user in all_users if user.has_role('influencer')]
+
+                # users = User.query.join(UserRoles).join(Role).filter(Role.name == 'influencer', User.active==1, User.flagged==0).all()
+                # return [user.to_dict() for user in users]
             
             user = User.query.get(user_id)
             if not user or user.roles[0]!='influencer' or not user.active or user.flagged:
@@ -347,6 +366,7 @@ class UserResource(Resource):
             'influencer_data': user.influencer_data.to_dict() if user.influencer_data else None
         }
         return jsonify(user_dict)
+    
 
     @auth_required()
     def put(self, user_id=None):
@@ -368,10 +388,7 @@ class UserResource(Resource):
                 return {'error': 'You are already a sponsor'}, 400
             
             user.active = False
-            # influencer_data = InfluencerData.query.filter_by(user_id=user.id).first()
-            # db.session.delete(influencer_data)
-            # user.roles = [Role.query.filter_by(name='sponsor').first()]
-            user.roles = []
+            user.roles = [Role.query.get(2)]
         
         if args.sponsor_data:
             if user.sponsor_data:
@@ -395,78 +412,51 @@ class UserResource(Resource):
         return {'message': 'User details updated successfully'}, 200 
 
 class AdminResource(Resource):
-
-    parser = reqparse.RequestParser()
-    user_fields = {
-        'id': fields.Integer,
-        'email': fields.String,
-        'name': fields.String,
-        'active': fields.Boolean,
-        'created_at': fields.String,
-        'updated_at': fields.String,
-    }
-
-    parser.add_argument('active', type=bool)
-    parser.add_argument('flagged', type=bool)
-
     @auth_required()
     @roles_required('admin')
-    @marshal_with(user_fields)
-    def get(self):
-        # List all users for admin
-        users = User.query.all()
-        return users
-
+    def get(self, entity_type):
+        if entity_type == 'sponsor':
+            all_users = User.query.filter_by(active=False).all()
+            users = [user for user in all_users if user.has_role('sponsor')]
+            return [user.to_dict() for user in users]
+        elif entity_type == 'campaigns':
+            campaigns = Campaign.query.filter(Campaign.flagged == True).all()
+            return [campaign.to_dict() for campaign in campaigns]
+        elif entity_type == 'ad_requests':
+            ad_requests = AdRequest.query.filter(AdRequest.status == 'flagged').all()
+            return [ad_request.to_dict() for ad_request in ad_requests]
+        else:
+            return {'error': 'Invalid entity type'}, 400
+    
     @auth_required()
     @roles_required('admin')
-    def put(self):
-        data = request.get_json()
-        if 'user_id' in data:
-            user_id = data['user_id']
-        if 'campaign_id' in data:
-            campaign_id = data['campaign_id']
-        args = self.parser.parse_args()
-        print(args)
-        user = User.query.get(user_id)
-        if not user:
-            return {'message': 'User not found'}, 404
-        
-        if args.active is not None:
-            user.active = args.active
-        if args.flagged is not None:
-            user.flagged = args.flagged
-
-        db.session.commit()
-        return {'message': 'User status updated successfully'}, 200
-
-class CampaignStatusResource(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('status', type=str, required=True, help='Status cannot be blank')
-
-    @auth_required()
-    @roles_required('sponsor')
-    def put(self, ad_request_id=None):
-        args = self.parser.parse_args()
-        ad_request = AdRequest.query.get(ad_request_id)
-        if not ad_request:
-            return {'message': 'Ad request not found'}, 404
-        ad_request.status = args.status
-        db.session.commit()
-        return {'message': 'Ad request status updated'}, 200
-
-    @auth_required()
-    @roles_required('influencer')
-    def get(self, campaign_id=None):
-        # Check if the influencer has applied for the campaign
-        ad_request = AdRequest.query.filter_by(campaign_id=campaign_id,user_id=current_user.id).first()
-        if ad_request:
-            return {'hasApplied': True}, 200
-        return {'hasApplied': False}, 200
+    def put(self, entity_type, id):
+        if entity_type == 'sponsor':
+            sponsor = User.query.get(id)
+            sponsor.influencer_data = None
+            sponsor.active = True
+            db.session.commit()
+            return {'message': "Sponsor activated sucessfully!"},200
+        elif entity_type == 'campaigns':
+            campaigns = Campaign.query.filter(Campaign.flagged == True).all()
+            return [campaign.to_dict() for campaign in campaigns]
+        elif entity_type == 'ad_requests':
+            ad_requests = AdRequest.query.filter(AdRequest.status == 'flagged').all()
+            return [ad_request.to_dict() for ad_request in ad_requests]
+        else:
+            return {'error': 'Invalid entity type'}, 400
 
 
-api.add_resource(CampaignResource, '/campaign', '/campaign/<int:campaign_id>', '/campaign/apply/<int:campaign_id>')
+# class AllInfluencers(Resource):
+#     @auth_required('session')
+#     @roles_required('sponsor')
+#     def get(self):
+#         all_users = User.query.filter_by(active=True, flagged=False).all()
+#         users = [user.to_dict() for user in all_users if user.has_role('influencer')]
+#         return users
+
+api.add_resource(CampaignResource, '/campaign', '/campaign/<int:campaign_id>')
 api.add_resource(AdRequestResource, '/ad-request', '/ad-request/<int:ad_request_id>', '/ad-request/c/<int:campaign_id>')
-api.add_resource(UserResource, '/user', '/user/<int:user_id>')
-api.add_resource(AdminResource, '/admin')
-
-api.add_resource(CampaignStatusResource, '/campaign/status/<int:campaign_id>', '/campaign/status/<int:ad_request_id>')
+api.add_resource(UserResource, '/user', '/user/<int:user_id>', '/user/<string:all>')
+api.add_resource(AdminResource, '/admin/<string:entity_type>', '/admin/<string:entity_type>/<int:id>')
+# api.add_resource(AllInfluencers, '/user/all')

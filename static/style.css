@@ -80,6 +80,9 @@ body::before {
 .dropdown-menu {
   z-index: 100;
 }
+table {
+  width: 100%;
+}
 
 td,
 tr {

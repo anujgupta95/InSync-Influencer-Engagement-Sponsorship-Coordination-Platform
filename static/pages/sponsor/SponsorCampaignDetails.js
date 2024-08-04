@@ -111,7 +111,7 @@ const SponsorCampaignDetails = {
         const res = await fetch(`/api/ad-request/c/${campaignId}`);
         this.adRequests = await res.json();
 
-        const resInfluencers = await fetch(`/api/user`);
+        const resInfluencers = await fetch(`/api/user/all`);
         this.influencers = await resInfluencers.json();
       } catch (error) {
         window.triggerToast(error, "danger");

@@ -128,15 +128,16 @@ const Profile = {
         });
         const data = await res.json();
         if (res.ok) {
+          if (updateRequested) {
+            const res = await fetch("/logout");
+            router.push("/logout");
+          }
           window.triggerToast(
             updateRequested
               ? "Role upgrade request successful. Please wait for admin approval."
               : "Profile updated successfully.",
             "success"
           );
-          if (updateRequested) {
-            router.push("/logout");
-          }
         } else if (data.error) {
           window.triggerToast(data.error, "warning");
         } else if (data.message) {

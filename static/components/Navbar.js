@@ -52,6 +52,9 @@ const Navbar = {
               <li v-if="userRole === 'influencer'" class="nav-item">
                   <router-link to="/influencer/dashboard" class="nav-link">Dashboard</router-link>
               </li>
+              <li v-if="userRole === 'admin'" class="nav-item">
+                  <router-link to="/admin/dashboard" class="nav-link">Dashboard</router-link>
+              </li>
               <li class="nav-item dropdown ms-2" v-if="isLoggedIn" >
                 <a class="nav-link dropdown-header fs-2 bi bi-person-circle icon-link" data-bs-toggle="dropdown" role="button" aria-expanded="false">
                 </a>

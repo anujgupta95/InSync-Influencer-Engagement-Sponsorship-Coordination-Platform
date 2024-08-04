@@ -16,6 +16,8 @@ import DashboardInfluencer from "../pages/influencer/DashboardInfluencer.js";
 import InfluencerCampaignDetails from "../pages/influencer/InfluencerCampaignDetails.js";
 import InfluencerAdRequest from "../pages/influencer/InfluencerAdRequest.js";
 
+import DashboardAdmin from "../pages/admin/DashboardAdmin.js";
+
 const routes = [
   { path: "/", component: Home },
   { path: "/login", component: Login, meta: { requiresAuth: false } },
@@ -42,6 +44,11 @@ const routes = [
     component: SponsorAdRequest,
     meta: { requiresAuth: true, requiredRole: "sponsor" },
   },
+  // {
+  //   path: `/influncer/:id`,
+  //   component: Influencers,
+  //   meta: { requiresAuth: true, requiredRole: "sponsor" },
+  // },
   {
     path: "/influencer/dashboard",
     component: DashboardInfluencer,
@@ -57,6 +64,11 @@ const routes = [
     component: InfluencerAdRequest,
     meta: { requiresAuth: true, requiredRole: "influencer" },
   },
+  {
+    path: `/admin/dashboard`,
+    component: DashboardAdmin,
+    meta: { requiresAuth: true, requiredRole: "admin" },
+  },
 ];
 
 const router = new VueRouter({
@@ -69,14 +81,12 @@ router.beforeEach(async (to, from, next) => {
     await store.dispatch("checkLogin");
 
     const isLoggedIn = store.getters.isLoggedIn;
+    const userRole = store.getters.userRole;
 
     if (to.matched.some((record) => record.meta.requiresAuth)) {
       if (!isLoggedIn) {
         next("/login");
-      } else if (
-        to.meta.requiredRole &&
-        to.meta.requiredRole !== store.getters.userRole
-      ) {
+      } else if (to.meta.requiredRole && to.meta.requiredRole !== userRole) {
         next("/");
       } else {
         next();

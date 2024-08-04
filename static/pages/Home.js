@@ -1,16 +1,16 @@
 import store from "../utils/store.js";
 import Campaign from "../components/Campaign.js";
+import router from "../utils/router.js";
 const Home = {
   template: `
   <div>
-    <h2 v-if="isLoggedIn">You are Logged in</h2>
-    <h2 v-else>You are Not Logged in</h2>
+    <h2 v-if="!isLoggedIn">Please Login to view the masala-e-magic</h2>
     <div v-if="isLoggedIn" class="container mt-4">
       <div  class="card rounded shadow mt-4 mb-2">
         <div class="card-body">
           <div class="d-flex align-items-center justify-content-between mb-3">
             <h3 class="flex-grow-1">All Campaigns</h3>
-            <router-link v-if="isSponsor" to="/sponsor/campaign/add" class="btn btn-success me-2">Add Campaign</router-link>
+            <router-link v-if="userRole === 'sponsor'" to="/sponsor/campaign/add" class="btn btn-success me-2">Add Campaign</router-link>
             <button class="btn btn-outline-secondary" @click="resetCampaignFilter">Clear Filter</button>
           </div>
 
@@ -57,9 +57,6 @@ const Home = {
     userRole() {
       return store.getters.userRole;
     },
-    isSponsor() {
-      return store.getters.userRole === "sponsor";
-    },
     filteredCampaigns() {
       return this.campaigns.filter((campaign) => {
         const matchesSearchQuery =
@@ -81,6 +78,11 @@ const Home = {
         return matchesSearchQuery && matchesStartDate && matchesEndDate;
       });
     },
+  },
+  beforeMount() {
+    if (store.getters.userRole === "admin") {
+      router.push("/admin/dashboard");
+    }
   },
   mounted() {
     store.dispatch("checkLogin");

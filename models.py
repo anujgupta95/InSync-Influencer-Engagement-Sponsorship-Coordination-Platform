@@ -47,6 +47,10 @@ class User(db.Model, UserMixin):
         return {
             'id' : self.id,
             'name': self.name,
+            'email':self.email,
+            'role': self.roles[0].name,
+            'active':self.active,
+            'flagged': self.flagged,
             'influencer_data': self.influencer_data.to_dict() if self.influencer_data else None
         }
 
