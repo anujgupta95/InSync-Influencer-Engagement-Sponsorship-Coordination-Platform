@@ -9,7 +9,7 @@ const Signup = {
                         Registration
                     </div>
                     <div class="card-body">
-                        <form onsubmit="return false">
+                        <form @submit.prevent="submitInfo">
                             <div class="form-group ">
                                 <div class="form-floating mt-2">
                                   <input v-model="name" type="text" class="form-control" id="name" placeholder="Enter name" name="name" required>

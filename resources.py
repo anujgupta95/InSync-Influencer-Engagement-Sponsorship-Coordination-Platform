@@ -1,10 +1,11 @@
 from flask_restful import Resource, Api, reqparse, fields, marshal_with
-from flask_security import auth_required, current_user, roles_required
+from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask import request, jsonify
-from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData
+from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData, UserRoles
 from extensions import db
 from datetime import date, datetime
 from env import ALL_ROLES
+from sqlalchemy import or_
 
 api = Api(prefix='/api')
 
@@ -35,38 +36,42 @@ class CampaignResource(Resource):
     def get(self, campaign_id=None):
         if current_user.has_role('admin'):
             if campaign_id is None:
-                # Admin can see all campaigns
-                return Campaign.query.all()
-            else:
-                # Admin can see a specific campaign
-                campaign = Campaign.query.get(campaign_id)
-                if not campaign:
-                    return {'message': 'Campaign not found'}, 404
-                return campaign
+                campaigns = Campaign.query.all()
+                return [campaign.to_dict() for campaign in campaigns]
+            campaign = Campaign.query.get(campaign_id)
+            if not campaign:
+                return {'message': 'Campaign not found'}, 404
+            return campaign.to_dict()
+        
         elif current_user.has_role('sponsor'):
             if campaign_id is None:
-                # Sponsors can see their own campaigns
                 campaigns =  Campaign.query.filter_by(user_id=current_user.id).all()
-                campaigns_list = [campaign.to_dict() for campaign in campaigns]
-                return campaigns_list
-            else:
-                campaign = Campaign.query.filter_by(user_id=current_user.id, id=campaign_id).first()
-                if not campaign:
-                    return {'message': 'Campaign not found or not authorized'}, 404
-                return campaign
+                return [campaign.to_dict() for campaign in campaigns]
+
+            campaign = Campaign.query.filter_by(user_id=current_user.id, id=campaign_id).first()
+            if not campaign:
+                return {'message': 'Campaign not found or not authorized'}, 404
+            return campaign.to_dict()
+        
         else:
-            # Influencers can only see public campaigns
             if campaign_id is None:
-                return Campaign.query.filter_by(visibility='public').all()
-            else:
-                campaign = Campaign.query.filter_by(id=campaign_id, visibility='public').first()
-                if not campaign:
-                    return {'message': 'Campaign not found or not authorized'}, 404
-                return campaign
+                campaigns =  Campaign.query.filter_by(visibility='public').all()
+                return [campaign.to_dict() for campaign in campaigns]
+            
+            campaign = Campaign.query.get(campaign_id)
+            if not campaign:
+                return {'message': 'Campaign not found or not authorized'}, 404
+            if campaign.visibility == 'public':
+                return campaign.to_dict()
+            if AdRequest.query.filter_by(user_id=current_user.id, campaign_id=campaign.id).first():
+                return campaign.to_dict()
+            return {'message': 'Campaign not found or not authorized'}, 404
+                
     
     @auth_required()
     @roles_required('sponsor')
     def post(self):
+        print("hello from post resources")
         args = self.parser.parse_args()
         campaign = Campaign(
             user_id=current_user.id,
@@ -80,10 +85,8 @@ class CampaignResource(Resource):
         )
         db.session.add(campaign)
         db.session.commit()
-        return {'message': 'Campaign created'}, 201
+        return {'message': 'Campaign created successfully!'}, 201
     
-
-    ##Kuch to lafda lag rha h baad m modify kr lena
     @auth_required()
     @roles_required('sponsor')
     def put(self, campaign_id=None):
@@ -124,7 +127,7 @@ class AdRequestResource(Resource):
     ad_request_fields = {
         'id': fields.Integer,
         'campaign_id': fields.Integer,
-        'influencer_id': fields.Integer,
+        'user_id': fields.Integer,
         'messages': fields.String,
         'requirements': fields.String,
         'payment_amount': fields.Float,
@@ -133,76 +136,172 @@ class AdRequestResource(Resource):
         'status': fields.String
     }
 
-    parser.add_argument('campaign_id', type=int, required=True, help='Campaign ID cannot be blank')
-    parser.add_argument('influencer_id', type=int, required=True, help='Influencer ID cannot be blank')
+    parser.add_argument('campaign_id', type=int)
+    parser.add_argument('user_id', type=int)
     parser.add_argument('messages', type=str)
     parser.add_argument('requirements', type=str)
-    parser.add_argument('payment_amount', type=float, required=True, help='Payment amount cannot be blank')
+    parser.add_argument('payment_amount', type=float)
     parser.add_argument('revised_payment_amount', type=float)
     parser.add_argument('negotiation_notes', type=str)
     parser.add_argument('status', type=str)
 
     @auth_required()
     @marshal_with(ad_request_fields)
-    def get(self, ad_request_id=None):
+    def get(self, ad_request_id=None, campaign_id=None):          
         if current_user.has_role('admin'):
             if ad_request_id is None:
-                return AdRequest.query.all()
-            else:
-                ad_request = AdRequest.query.get(ad_request_id)
-                if not ad_request:
-                    return {'message': 'Ad request not found'}, 404
-                return ad_request
+                return [ad_request.to_dict() for ad_request in AdRequest.query.all()]
+
+            ad_request = AdRequest.query.get(ad_request_id)
+            if not ad_request:
+                return {'error': 'Ad request not found'}, 404
+            return ad_request.to_dict()
+        
         elif current_user.has_role('sponsor'):
+            if campaign_id:
+                if Campaign.query.get(campaign_id) in current_user.campaigns:
+                    ad_requests = AdRequest.query.filter_by(campaign_id=campaign_id).all()
+                    return [ad_request.to_dict() for ad_request in ad_requests]
+                return {'error': 'Cannot access others campaign details'}, 404
+            
             if ad_request_id is None:
-                return AdRequest.query.filter_by(campaign_id=Campaign.query.filter_by(user_id=current_user.id).subquery()).all()
+                # campaign_ids = [campaign.id for campaign in current_user.campaigns]
+                # ad_requests = AdRequest.query.filter(AdRequest.campaign_id.in_(campaign_ids)).all()
+                ad_requests = AdRequest.query.join(Campaign).filter(Campaign.user_id == current_user.id).all()
+                return [ad_request.to_dict() for ad_request in ad_requests]
             else:
-                ad_request = AdRequest.query.filter_by(campaign_id=Campaign.query.filter_by(user_id=current_user.id).subquery(), id=ad_request_id).first()
+                ad_request = AdRequest.query.join(Campaign).filter(Campaign.user_id == current_user.id, AdRequest.id == ad_request_id).first()
                 if not ad_request:
-                    return {'message': 'Ad request not found or not authorized'}, 404
-                return ad_request
+                    return {'error': 'Ad request not found or not authorized'}, 404
+                return ad_request.to_dict()
         else:  # Influencer
+            if campaign_id:
+                if Campaign.query.get(campaign_id):
+                    ad_request = AdRequest.query.filter(AdRequest.campaign_id == campaign_id, AdRequest.user_id == current_user.id).first()
+                    if not ad_request:
+                        ad_request = AdRequest.query.filter(AdRequest.campaign_id == campaign_id, or_(AdRequest.user_id == 0,AdRequest.user_id.is_(None))).first()
+                     
+                    if not ad_request:
+                        return {'error': 'Ad request not found or not authorized'}, 404
+                    
+                    return ad_request.to_dict()
+                return {'error': 'Ad request not found or not authorized'}, 404
+            
             if ad_request_id is None:
-                return AdRequest.query.filter_by(influencer_id=current_user.id).all()
+                ad_requests = AdRequest.query.filter_by(user_id=current_user.id).all()
+                return [ad_request.to_dict() for ad_request in ad_requests]
             else:
-                ad_request = AdRequest.query.filter_by(influencer_id=current_user.id, id=ad_request_id).first()
+                # ad_request = AdRequest.query.filter_by(user_id=current_user.id, id=ad_request_id).first()
+                ad_request = AdRequest.query.filter(AdRequest.id==ad_request_id,
+                                                    or_(AdRequest.user_id == 0,AdRequest.user_id == current_user.id,AdRequest.user_id.is_(None))).first()
                 if not ad_request:
-                    return {'message': 'Ad request not found or not authorized'}, 404
-                return ad_request
+                    return {'error': 'Ad request not found or not authorized'}, 404
+                return ad_request.to_dict()
 
     @auth_required()
     @roles_required('sponsor')
     def post(self):
-        args = self.parser.parse_args()
+        args = self.parser.parse_args() 
+        campaign = Campaign.query.get(args.campaign_id)
+        if not campaign:
+            return {'error': 'Campaign does not exist'}, 400
+        if AdRequest.query.filter_by(campaign_id=campaign.id, user_id=args.user_id).first():
+            return {'error': 'This user has already an active request for this campaign'}, 400
+        
         ad_request = AdRequest(
-            campaign_id=args.campaign_id,
-            influencer_id=args.influencer_id,
+            campaign_id=campaign.id,
+            user_id=args.user_id,
             messages=args.messages,
             requirements=args.requirements,
             payment_amount=args.payment_amount,
-            status=args.status
+            status="pending",
         )
         db.session.add(ad_request)
         db.session.commit()
         return {'message': 'Ad request created'}, 201
 
     @auth_required()
-    @roles_required('influencer')
+    @roles_accepted('influencer', 'sponsor')
     def put(self, ad_request_id):
         args = self.parser.parse_args()
-        ad_request = AdRequest.query.filter_by(influencer_id=current_user.id, id=ad_request_id).first()
+        ad_request = AdRequest.query.get(ad_request_id)
         if not ad_request:
             return {'message': 'Ad request not found or not authorized'}, 404
-        for key, value in args.items():
-            if value is not None:
-                setattr(ad_request, key, value)
+        
+        if current_user.has_role('influencer'):
+            new_ad_request_flag = False
+            if ad_request.user_id in [0, None]:
+                new_ad_request = AdRequest(
+                    campaign_id=ad_request.campaign_id,
+                    user_id=current_user.id,
+                    messages=ad_request.messages,
+                    requirements=ad_request.requirements,
+                    payment_amount=ad_request.payment_amount
+                )
+                db.session.add(new_ad_request)
+                ad_request = new_ad_request
+                new_ad_request_flag = True
+
+            notes = f"Influencer ID: {current_user.id} | Influencer Name: {current_user.name} | Date & Time: {str(datetime.now()).split('.')[0]}\n"
+            if ad_request.status in ['pending', 'negotiating']:
+                if args.status in ['accepted', 'rejected']:
+                    notes += f"Ad Request {args.status.capitalize()}\n\n"
+                    ad_request.status = args.status
+                    
+                if ad_request.status == 'negotiating':
+                    if 'revised_payment_amount' in args:
+                        ad_request.revised_payment_amount = args.revised_payment_amount
+                        notes += f"Revised Amount: {args.revised_payment_amount}\n"
+
+                    if 'negotiation_notes' in args:
+                        notes += f"{args.negotiation_notes}\n\n"
+                    
+                elif args.status == 'negotiating' and ad_request.status == 'pending':
+                    notes += "Started Negotiation\n\n"
+                    ad_request.status = 'negotiating'
+
+                ad_request.negotiation_notes += notes
+            if new_ad_request_flag:
+                db.session.commit()
+                print(new_ad_request.id)
+                return {'message': f'Public Ad Request {args.status}', "id":new_ad_request.id}, 200
+            
+        elif current_user.has_role('sponsor'):
+            ad_req = request.get_json()
+            if("id" in ad_req):
+                ad_request = AdRequest.query.get(ad_request_id)
+                ad_request.user_id = ad_req['user_id']
+                ad_request.messages = ad_req['messages']
+                ad_request.requirements = ad_req['requirements']
+                ad_request.payment_amount = ad_req['payment_amount']
+                ad_request.revised_payment_amount = None
+                ad_request.negotiation_notes = ''
+                ad_request.status = "pending"
+            else:
+                if 'negotiation_notes' in args:
+                    notes = f"Sponsor ID: {current_user.id} | Sponsor Name: {current_user.name} | Date & Time: {str(datetime.now()).split('.')[0]}\n"
+                    notes += f"Revised Amount: {args.revised_payment_amount}\n"
+                    notes += f"{args.negotiation_notes}\n\n"
+                    ad_request.negotiation_notes += notes
+                if 'revised_payment_amount' in args:
+                    ad_request.revised_payment_amount = args.revised_payment_amount
+                    # if args.status == "accepted":
+                    #     notes += "Ad Request Accepted\n\n"
+                    # elif args.status == "rejected":
+                    #     notes += "Ad Request Rejected\n\n"
+                    # elif args.status == "negotiating" and ad_request.status == "pending":
+                    #     notes += "Started Negotiation\n\n"
+                    # else:
+                # if 'status' in args and args.status in REQUEST_STATUS:
+                #     ad_request.status = args.status
         db.session.commit()
         return {'message': 'Ad request updated'}, 200
-
+    
     @auth_required()
-    @roles_required('influencer')
+    @roles_required('sponsor')
     def delete(self, ad_request_id):
-        ad_request = AdRequest.query.filter_by(influencer_id=current_user.id, id=ad_request_id).first()
+        campaign_ids = [campaign.id for campaign in current_user.campaigns]
+        ad_request = AdRequest.query.filter(AdRequest.campaign_id.in_(campaign_ids), AdRequest.id==ad_request_id).first()
         if not ad_request:
             return {'message': 'Ad request not found or not authorized'}, 404
         db.session.delete(ad_request)
@@ -213,22 +312,47 @@ class UserResource(Resource):
 
     parser = reqparse.RequestParser()
     parser.add_argument('name', type=str, required=True, help='Name cannot be blank')
-    # parser.add_argument('role', type=str, required=True, help='Role cannot be null')
     parser.add_argument('request_role_update', type=str, help='Requested role change')
-
-    # Define optional nested structures for role-specific data
     parser.add_argument('sponsor_data', type=dict, location='json')
     parser.add_argument('influencer_data', type=dict, location='json')
 
     @auth_required()
-    def get(self, user_id=None):
+    def get(self, user_id=None, all=""):
         if not current_user.is_authenticated:
             return {'error': 'Please login first'}, 401
         
-        if user_id is None:
-            user = User.query.get(current_user.id)
-        else:
+        if current_user.has_role('admin'):
+            if user_id is None:
+                users = User.query.all()
+                return [user.to_dict() for user in users]
+            
             user = User.query.get(user_id)
+            if not user:
+                return {'error': 'User not found'}, 404
+            return user.to_dict()
+                
+        
+        elif current_user.has_role('sponsor'):
+            if all=="all":
+                all_users = User.query.filter_by(active=True, flagged=False).all()
+                users = [user.to_dict() for user in all_users if user.has_role('influencer')]
+                return users
+            if user_id is None:
+                return current_user.to_dict()
+                # all_users = User.query.filter_by(active=True, flagged=False).all()
+                # users = [user for user in all_users if user.has_role('influencer')]
+
+                # users = User.query.join(UserRoles).join(Role).filter(Role.name == 'influencer', User.active==1, User.flagged==0).all()
+                # return [user.to_dict() for user in users]
+            
+            user = User.query.get(user_id)
+            if not user or user.roles[0]!='influencer' or not user.active or user.flagged:
+                return {'error': 'Influencer not found'}, 404
+            return user.to_dict()
+
+        # if user_id is None:
+        user = User.query.get(current_user.id)
+            
         if not user:
             return {'error': 'User not found'}, 404
         
@@ -241,13 +365,12 @@ class UserResource(Resource):
             'sponsor_data': user.sponsor_data.to_dict() if user.sponsor_data else None,
             'influencer_data': user.influencer_data.to_dict() if user.influencer_data else None
         }
-        print("User Data:", user_dict)
         return jsonify(user_dict)
+    
 
     @auth_required()
     def put(self, user_id=None):
         args = self.parser.parse_args()
-        print(args)
 
         if user_id is None:
             user = User.query.get(current_user.id)
@@ -265,10 +388,7 @@ class UserResource(Resource):
                 return {'error': 'You are already a sponsor'}, 400
             
             user.active = False
-            # influencer_data = InfluencerData.query.filter_by(user_id=user.id).first()
-            # db.session.delete(influencer_data)
-            # user.roles = [Role.query.filter_by(name='sponsor').first()]
-            user.roles = []
+            user.roles = [Role.query.get(2)]
         
         if args.sponsor_data:
             if user.sponsor_data:
@@ -292,52 +412,51 @@ class UserResource(Resource):
         return {'message': 'User details updated successfully'}, 200 
 
 class AdminResource(Resource):
-
-    parser = reqparse.RequestParser()
-    user_fields = {
-        'id': fields.Integer,
-        'email': fields.String,
-        'name': fields.String,
-        'active': fields.Boolean,
-        'created_at': fields.String,
-        'updated_at': fields.String,
-    }
-
-    parser.add_argument('active', type=bool)
-    parser.add_argument('flagged', type=bool)
-
     @auth_required()
     @roles_required('admin')
-    @marshal_with(user_fields)
-    def get(self):
-        # List all users for admin
-        users = User.query.all()
-        return users
-
+    def get(self, entity_type):
+        if entity_type == 'sponsor':
+            all_users = User.query.filter_by(active=False).all()
+            users = [user for user in all_users if user.has_role('sponsor')]
+            return [user.to_dict() for user in users]
+        elif entity_type == 'campaigns':
+            campaigns = Campaign.query.filter(Campaign.flagged == True).all()
+            return [campaign.to_dict() for campaign in campaigns]
+        elif entity_type == 'ad_requests':
+            ad_requests = AdRequest.query.filter(AdRequest.status == 'flagged').all()
+            return [ad_request.to_dict() for ad_request in ad_requests]
+        else:
+            return {'error': 'Invalid entity type'}, 400
+    
     @auth_required()
     @roles_required('admin')
-    def put(self):
-        data = request.get_json()
-        if 'user_id' in data:
-            user_id = data['user_id']
-        if 'campaign_id' in data:
-            campaign_id = data['campaign_id']
-        args = self.parser.parse_args()
-        print(args)
-        user = User.query.get(user_id)
-        if not user:
-            return {'message': 'User not found'}, 404
-        
-        if args.active is not None:
-            user.active = args.active
-        if args.flagged is not None:
-            user.flagged = args.flagged
+    def put(self, entity_type, id):
+        if entity_type == 'sponsor':
+            sponsor = User.query.get(id)
+            sponsor.influencer_data = None
+            sponsor.active = True
+            db.session.commit()
+            return {'message': "Sponsor activated sucessfully!"},200
+        elif entity_type == 'campaigns':
+            campaigns = Campaign.query.filter(Campaign.flagged == True).all()
+            return [campaign.to_dict() for campaign in campaigns]
+        elif entity_type == 'ad_requests':
+            ad_requests = AdRequest.query.filter(AdRequest.status == 'flagged').all()
+            return [ad_request.to_dict() for ad_request in ad_requests]
+        else:
+            return {'error': 'Invalid entity type'}, 400
 
-        db.session.commit()
-        return {'message': 'User status updated successfully'}, 200
 
+# class AllInfluencers(Resource):
+#     @auth_required('session')
+#     @roles_required('sponsor')
+#     def get(self):
+#         all_users = User.query.filter_by(active=True, flagged=False).all()
+#         users = [user.to_dict() for user in all_users if user.has_role('influencer')]
+#         return users
 
 api.add_resource(CampaignResource, '/campaign', '/campaign/<int:campaign_id>')
-api.add_resource(AdRequestResource, '/ad_request', '/ad_request/<int:ad_request_id>')
-api.add_resource(UserResource, '/user', '/user/<int:user_id>')
-api.add_resource(AdminResource, '/admin')
+api.add_resource(AdRequestResource, '/ad-request', '/ad-request/<int:ad_request_id>', '/ad-request/c/<int:campaign_id>')
+api.add_resource(UserResource, '/user', '/user/<int:user_id>', '/user/<string:all>')
+api.add_resource(AdminResource, '/admin/<string:entity_type>', '/admin/<string:entity_type>/<int:id>')
+# api.add_resource(AllInfluencers, '/user/all')

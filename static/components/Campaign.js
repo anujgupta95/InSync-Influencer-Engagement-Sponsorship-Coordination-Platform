@@ -1,8 +1,14 @@
+import store from "../utils/store.js";
+import router from "../utils/router.js";
 const Campaign = {
   template: `
     <div class="card mb-3">
+        <div v-if="header" class="d-flex card-header justify-content-between align-items-center">
+              <h5>{{header}}</h5>
+              <button @click="goBack" class="btn btn-outline-secondary me-2 ms-2 mb-1 w-25">Back</button>
+        </div>
         <div class="card-body">
-            <div v-if="isEditing">
+            <div v-if="isEditing && isSponsor">
                 <div class="form-floating mb-2">
                     <input type="text" class="form-control" v-model="editcampaignData.name" placeholder="Campaign Name" required/>
                     <label>Campaign Name</label>
@@ -12,7 +18,7 @@ const Campaign = {
                     <label>Description</label>
                 </div>
                 <div class="form-floating mb-2">
-                    <input type="date" class="form-control" v-model="editcampaignData.start_date"placeholder="Start Date" required/>
+                    <input type="date" class="form-control" v-model="editcampaignData.start_date" placeholder="Start Date" required/>
                     <label>Start Date</label>
                 </div>
                 <div>
@@ -28,8 +34,8 @@ const Campaign = {
                 </div>
                 <div class="form-floating mb-2">
                     <select v-model="editcampaignData.visibility" class="form-control" name="visibility" required>
-                    <option value="public" >Public</option>
-                    <option value="private">private</option>
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
                     </select>
                     <label for="visibility">Visibility</label>
                 </div>
@@ -48,8 +54,14 @@ const Campaign = {
                 <p class="card-text"><strong>Budget:</strong> {{ campaign.budget }}</p>
                 <p class="card-text"><strong>Visibility:</strong> {{ campaign.visibility }}</p>
                 <p class="card-text"><strong>Goals:</strong> {{ campaign.goals }}</p>
-                <button @click="editCampaign" class="btn btn-warning w-48">Edit</button>
-                <button @click="deleteCampaign" class="btn btn-danger w-50">Delete</button>
+                <div v-if="isSponsor">
+                    <button @click="editCampaign" class="btn btn-warning w-48">Edit</button>
+                    <button @click="deleteCampaign" class="btn btn-danger w-50">Delete</button>
+                    <router-link :to="viewDetailsUrl" v-if="showCreateAdRequestButton" class="btn btn-success w-100 mt-1">Create Ad Request</router-link >
+                </div>
+                <div v-else-if="isInlfluencer">
+                    <router-link :to="viewDetailsUrl" class="btn btn-warning w-100">View</router-link >
+                </div>
             </div>
         </div>
     </div>
@@ -58,7 +70,6 @@ const Campaign = {
     return {
       isEditing: false,
       editcampaignData: { ...this.campaign },
-      date_error: "",
     };
   },
   props: {
@@ -66,20 +77,32 @@ const Campaign = {
       type: Object,
       required: true,
     },
-  },
-  watch: {
-    "editcampaignData.start_date": function (start_date) {
-      console.log(start_date, this.campaign.end_date);
-      this.date_error = "";
-      if (start_date > this.campaign.end_date) {
-        this.date_error = "End date can not be before start date";
-      }
+    header: {
+      type: String,
     },
-    "editcampaignData.end_date": function (end_date) {
-      this.date_error = "";
-      if (this.campaign.start_date > end_date) {
-        this.date_error = "End date can not be before start date";
+    showCreateAdRequestButton: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  computed: {
+    isSponsor() {
+      return store.getters.userRole === "sponsor";
+    },
+    isInlfluencer() {
+      return store.getters.userRole === "influencer";
+    },
+    date_error() {
+      if (this.editcampaignData.start_date > this.editcampaignData.end_date) {
+        return "End date cannot be before start date";
       }
+      return "";
+    },
+    viewDetailsUrl() {
+      if (this.isSponsor) {
+        return `/sponsor/campaign/${this.campaign.id}`;
+      }
+      return `/influencer/campaign/${this.campaign.id}`;
     },
   },
   methods: {
@@ -125,34 +148,35 @@ const Campaign = {
         !this.editcampaignData.goals ||
         this.editcampaignData.start_date > this.editcampaignData.end_date
       ) {
-        window.triggerToast("Please enter Valid details", "warning");
+        window.triggerToast("Please enter valid details", "warning");
         return false;
       }
       try {
-        const response = await fetch(`/api/campaign/${this.campaign.id}`, {
+        const res = await fetch(`/api/campaign/${this.campaign.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            // "Authentication-Token": localStorage.getItem("token"),
           },
           body: JSON.stringify(this.editcampaignData),
         });
 
-        const data = await response.json();
-        if (!response.ok) {
-          window.triggerToast(
-            data.message || "Error updating campaign",
-            "danger"
-          );
-          throw new Error(data.message);
+        const data = await res.json();
+        if (res.ok) {
+          window.triggerToast(data.message, "success");
+          this.isEditing = false;
+          this.$emit("update");
+          return;
         }
-
-        window.triggerToast("Campaign updated successfully", "success");
-        this.isEditing = false;
-        this.$emit("update");
+        window.triggerToast(data.error || "Error updating campaign", "danger");
       } catch (error) {
-        window.triggerToast(error, "warning");
+        window.triggerToast(
+          error.message || "Error updating campaign",
+          "warning"
+        );
       }
+    },
+    goBack() {
+      router.go(-1);
     },
   },
 };

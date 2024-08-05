@@ -28,7 +28,7 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore):
         return jsonify({
             "loggedIn": True,
             "id": current_user.id,
-            "roles": current_user.roles[0].name,
+            "role": current_user.roles[0].name,
             "message": "User is Logged in"
         })
 
