@@ -78,7 +78,7 @@ const Login = {
           window.triggerToast(data.response.errors[0], "warning");
         }
       } catch (error) {
-        window.triggerToast("An error occurred. Please try again.", "error");
+        window.triggerToast("An error occurred. Please try again.", "danger");
       }
     },
     togglePasswordVisibility() {

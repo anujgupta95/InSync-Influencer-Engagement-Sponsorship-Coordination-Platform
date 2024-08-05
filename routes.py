@@ -43,7 +43,7 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore):
 
         if not email or not password or role not in PUBLIC_ROLES:
             return jsonify({"error": "Invalid Input"}), 400
-        
+
         if user_datastore.find_user(email=email):
             return jsonify({"error": "User already exists"}), 409
 
@@ -56,26 +56,23 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore):
                 company_name = sponsor_data_dict.get('company_name', "")
                 industry = sponsor_data_dict.get('industry', "")
                 budget = sponsor_data_dict.get('budget', 0)
-
                 sponsor_data = SponsorData(
                     company_name=company_name,
                     industry=industry,
                     budget=budget
                 )
-
             elif role == 'influencer':
                 influencer_data_dict = data.get('influencer_data', {})
                 category = influencer_data_dict.get('category', "")
                 niche = influencer_data_dict.get('niche', "")
                 followers = influencer_data_dict.get('followers', 0)
-
                 influencer_data = InfluencerData(
                     category=category,
                     niche=niche,
                     followers=followers
                 )
 
-            user = user_datastore.create_user(
+            user_datastore.create_user(
                 email=email,
                 password=hash_password(password),
                 roles=[role],
@@ -84,10 +81,9 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore):
                 sponsor_data=sponsor_data,
                 influencer_data=influencer_data
             )
-
-            db.session.commit()
+            
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": f"Error while creating user: {str(e)}"}), 500
-
+        db.session.commit()
         return jsonify({"message": "User created"}), 200

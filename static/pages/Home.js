@@ -9,7 +9,7 @@ const Home = {
       <div  class="card rounded shadow mt-4 mb-2">
         <div class="card-body">
           <div class="d-flex align-items-center justify-content-between mb-3">
-            <h3 class="flex-grow-1">All Campaigns</h3>
+            <h3 class="flex-grow-1">Public Campaigns</h3>
             <router-link v-if="userRole === 'sponsor'" to="/sponsor/campaign/add" class="btn btn-success me-2">Add Campaign</router-link>
             <button class="btn btn-outline-secondary" @click="resetCampaignFilter">Clear Filter</button>
           </div>

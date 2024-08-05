@@ -77,7 +77,7 @@ const Signup = {
                                     <label for="budget">Budget</label>
                                   </div>
                                 </div>
-                                <button type="submit" class="btn btn-success w-100 mt-3" @click="submitInfo">Sign Up</button>
+                                <button type="submit" class="btn btn-success w-100 mt-3" id="submitBtn" @click="submitInfo">Sign Up</button>
                             </div>
                         </form>
                         <div class="mt-2 text-center">
@@ -165,6 +165,8 @@ const Signup = {
       }
 
       const url = window.location.origin;
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
       try {
         const res = await fetch(url + "/signup", {
           method: "POST",
@@ -182,17 +184,17 @@ const Signup = {
           }),
           credentials: "same-origin",
         });
-
-        const data = await res.json();
-        if (data.error) {
-          window.triggerToast(data.error, "warning");
-        } else if (data.message) {
-          router.push("/login");
+        if (res.ok) {
           window.triggerToast("Account created successfully", "success");
+          router.push("/login");
+        } else {
+          const data = await res.json();
+          window.triggerToast(data.error, "warning");
         }
       } catch (error) {
         window.triggerToast("Signup failed. Please try again.", "danger");
       }
+      btn.disabled = false;
     },
     togglePasswordVisibility() {
       this.showPassword = !this.showPassword;

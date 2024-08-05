@@ -1,7 +1,7 @@
 const DashboardAdmin = {
   template: `
   <div class="container mt-4">
-    <div  class="card">
+    <div class="card">
         <p class="card-header h4">Pending Requests</p>
         <table v-if="sponsors.length > 0" class="text-center rounded card-body">
           <thead>

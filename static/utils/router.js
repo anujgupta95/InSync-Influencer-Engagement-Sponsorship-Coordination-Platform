@@ -11,6 +11,7 @@ import DashboardSponsor from "../pages/sponsor/DashboardSponsor.js";
 import AddCampaign from "../pages/sponsor/AddCampaign.js";
 import SponsorCampaignDetails from "../pages/sponsor/SponsorCampaignDetails.js";
 import SponsorAdRequest from "../pages/sponsor/SponsorAdRequest.js";
+import AllInfluencers from "../pages/sponsor/AllInfluencers.js";
 
 import DashboardInfluencer from "../pages/influencer/DashboardInfluencer.js";
 import InfluencerCampaignDetails from "../pages/influencer/InfluencerCampaignDetails.js";
@@ -44,11 +45,11 @@ const routes = [
     component: SponsorAdRequest,
     meta: { requiresAuth: true, requiredRole: "sponsor" },
   },
-  // {
-  //   path: `/influncer/:id`,
-  //   component: Influencers,
-  //   meta: { requiresAuth: true, requiredRole: "sponsor" },
-  // },
+  {
+    path: `/influencers`,
+    component: AllInfluencers,
+    meta: { requiresAuth: true, requiredRole: "sponsor" },
+  },
   {
     path: "/influencer/dashboard",
     component: DashboardInfluencer,

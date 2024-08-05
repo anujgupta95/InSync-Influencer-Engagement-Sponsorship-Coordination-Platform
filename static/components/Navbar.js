@@ -32,19 +32,15 @@ const Navbar = {
                 <a class="nav-link disabled" aria-disabled="true">Disabled</a>
               </li>
             </ul>
-            <form class="d-flex" role="search">
-              <div class="form-floating">
-                <input v-model="search" type="search" class="form-control form-control-lg" placeholder="Search" name="search" required>
-                <label for="search">Search</label>
-              </div>
-              <button class="btn btn-outline-success ms-2" type="submit">Search</button>
-            </form>
             <ul class="navbar-nav mb-2 mb-lg-0">
               <li class="nav-item" v-if="!isLoggedIn">
                 <router-link to="/login" class="nav-link">Login</router-link>
               </li>
               <li class="nav-item" v-if="!isLoggedIn">
                 <router-link to="/signup" class="nav-link">Sign Up</router-link>
+              </li>
+              <li v-if="userRole === 'sponsor'" class="nav-item">
+                  <router-link to="/influencers" class="nav-link">Influencers</router-link>
               </li>
               <li v-if="userRole === 'sponsor'" class="nav-item">
                   <router-link to="/sponsor/dashboard" class="nav-link">Dashboard</router-link>
@@ -59,12 +55,15 @@ const Navbar = {
                 <a class="nav-link dropdown-header fs-2 bi bi-person-circle icon-link" data-bs-toggle="dropdown" role="button" aria-expanded="false">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
-                  <li><router-link to="/profile" class="dropdown-item">Profile</router-link></li>
+                  <li v-if="userRole !== 'admin'"><router-link to="/profile" class="dropdown-item">Profile</router-link></li>
                   <li v-if="userRole === 'sponsor'">
                     <router-link to="/sponsor/dashboard" class="dropdown-item">Dashboard</router-link>
                   </li>
                   <li v-if="userRole === 'influencer'">
                     <router-link to="/influencer/dashboard" class="dropdown-item">Dashboard</router-link>
+                  </li>
+                  <li v-if="userRole === 'admin'">
+                    <router-link to="/admin/dashboard" class="dropdown-item">Dashboard</router-link>
                   </li>
                   <li><router-link to="/logout" class="dropdown-item">Logout</router-link></li>
                 </ul>
@@ -75,11 +74,6 @@ const Navbar = {
       </nav>
     </header>
     `,
-  data() {
-    return {
-      search: "",
-    };
-  },
   computed: {
     isLoggedIn() {
       return store.getters.isLoggedIn;

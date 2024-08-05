@@ -89,6 +89,9 @@ tr {
   line-height: 3.5;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
+tbody tr:hover {
+  background-color: rgba(68, 63, 63, 0.148);
+}
 .toast {
   opacity: 0;
   transition: opacity 0.7s ease-in-out; /* Adjust duration as needed */
