@@ -33,7 +33,7 @@ class CampaignResource(Resource):
 
     @auth_required()
     @marshal_with(campaign_fields)
-    @cache.cached(timeout=30, query_string=True)
+    # @cache.cached(timeout=30, query_string=True)
     def get(self, campaign_id=None):
         if current_user.has_role('admin'):
             if campaign_id is None:

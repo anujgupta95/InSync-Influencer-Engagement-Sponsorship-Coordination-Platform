@@ -43,7 +43,7 @@ const Campaign = {
                     <textarea class="form-control" v-model="editcampaignData.goals" placeholder="Goals" required></textarea>
                     <label>Goals</label>
                 </div>
-                <button class="btn btn-primary w-48" @click="saveCampaign">Save</button>
+                <button class="btn btn-success w-48" @click="saveCampaign">Save</button>
                 <button class="btn btn-outline-secondary w-50" @click="cancelEdit">Cancel</button>
             </div>
             <div v-else>

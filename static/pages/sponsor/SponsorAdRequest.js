@@ -140,7 +140,7 @@ const SponsorAdRequest = {
             negotiation_notes: this.negotiationNotes,
             revised_payment_amount: this.revisedPaymentAmount
               ? this.revisedPaymentAmount
-              : this.adRequest.payment_amount,
+              : this.adRequest.revised_payment_amount,
           }),
         });
       } catch (error) {
