@@ -4,7 +4,7 @@ const Campaign = {
   template: `
     <div class="card mb-3">
         <div v-if="header" class="d-flex card-header justify-content-between align-items-center">
-              <h5>{{header}}</h5>
+              <p class="h4">{{header}}</p>
               <button @click="goBack" class="btn btn-outline-secondary me-2 ms-2 mb-1 w-25">Back</button>
         </div>
         <div class="card-body">

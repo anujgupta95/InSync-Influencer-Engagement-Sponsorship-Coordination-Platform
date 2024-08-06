@@ -25,8 +25,8 @@ class User(db.Model, UserMixin):
 
     #Taken care by flask-security
     fs_uniquifier = db.Column(db.String, nullable=False)
-    last_login_at = db.Column(db.DateTime, default=dt.now())
-    current_login_at = db.Column(db.DateTime, default=dt.now())
+    last_login_at = db.Column(db.DateTime, default=dt.now(), onupdate=dt.now())
+    current_login_at = db.Column(db.DateTime, default=dt.now(), onupdate=dt.now())
     current_login_ip = db.Column(db.String, default="0.0.0.0")
     login_count = db.Column(db.Integer, default=0)
 

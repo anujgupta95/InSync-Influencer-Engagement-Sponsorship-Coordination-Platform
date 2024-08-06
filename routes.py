@@ -4,8 +4,14 @@ from flask_security.utils import hash_password
 from extensions import db
 from env import PUBLIC_ROLES
 from models import SponsorData, InfluencerData
+import datetime
 
-def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore):
+def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore, cache):
+
+    @app.route('/cachedemo')
+    @cache.cached(timeout=50)
+    def cache():
+        return jsonify({"time" : datetime.datetime.now()})
 
     @app.route('/')
     def home():

@@ -1,8 +1,8 @@
-from flask_restful import Resource, Api, reqparse, fields, marshal_with
+from flask_restful import Resource, Api, reqparse, fields, marshal_with # type: ignore
 from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask import request, jsonify
 from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData, UserRoles
-from extensions import db
+from extensions import db, cache
 from datetime import date, datetime
 from env import ALL_ROLES
 from sqlalchemy import or_
@@ -33,6 +33,7 @@ class CampaignResource(Resource):
 
     @auth_required()
     @marshal_with(campaign_fields)
+    @cache.cached(timeout=30, query_string=True)
     def get(self, campaign_id=None):
         if current_user.has_role('admin'):
             if campaign_id is None:
@@ -447,16 +448,7 @@ class AdminResource(Resource):
             return {'error': 'Invalid entity type'}, 400
 
 
-# class AllInfluencers(Resource):
-#     @auth_required('session')
-#     @roles_required('sponsor')
-#     def get(self):
-#         all_users = User.query.filter_by(active=True, flagged=False).all()
-#         users = [user.to_dict() for user in all_users if user.has_role('influencer')]
-#         return users
-
 api.add_resource(CampaignResource, '/campaign', '/campaign/<int:campaign_id>')
 api.add_resource(AdRequestResource, '/ad-request', '/ad-request/<int:ad_request_id>', '/ad-request/c/<int:campaign_id>')
 api.add_resource(UserResource, '/user', '/user/<int:user_id>', '/user/<string:all>')
 api.add_resource(AdminResource, '/admin/<string:entity_type>', '/admin/<string:entity_type>/<int:id>')
-# api.add_resource(AllInfluencers, '/user/all')

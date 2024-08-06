@@ -6,11 +6,12 @@ const InfluencerCampaignDetails = {
     <div>
       <div v-if="campaign" class="container mt-4 mb-2">
         <div class="card shadow">
+          <div class="d-flex justify-content-between align-items-center card-header">
+            <p class="h4">Campaign Details</p>
+            <button @click="goBack" class="btn btn-outline-secondary w-25">Back</button>
+          </div>
           <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <h2>{{ campaign.name }}</h2>
-              <button @click="goBack" class="btn btn-outline-secondary w-25">Back</button>
-            </div>
+            <h2>{{ campaign.name }}</h2>
             <p><strong>Description:</strong> {{ campaign.description }}</p>
             <p><strong>Start Date:</strong> {{ campaign.start_date }}</p>
             <p><strong>End Date:</strong> {{ campaign.end_date }}</p>
@@ -20,7 +21,7 @@ const InfluencerCampaignDetails = {
         </div>
 
         <div class='card mt-2'>
-          <p class="card-header"> Active Ad Requests</p>
+          <p class="card-header h4">Active Ad Requests</p>
           <div class="card-body">
             <div v-if="!adRequest.status">
                 <p class="card-text"><strong>No ad requests found</strong></p>
@@ -46,7 +47,7 @@ const InfluencerCampaignDetails = {
         </div>
 
         <!--<div v-if="adRequest && hasApplied" class="card rounded shadow mb-2 mt-2">
-          <p class="card-header">Ad Request Details</p>
+          <p class="card-header h4">Ad Request Details</p>
           <div class="card-body">
             <div>
               <div class="mb-3">
@@ -81,7 +82,7 @@ const InfluencerCampaignDetails = {
   data() {
     return {
       campaign: {},
-      hasApplied: false, //remove
+      hasApplied: false,
       adRequest: {},
       submitAdRequestData: {},
       negotiationNotes: "",

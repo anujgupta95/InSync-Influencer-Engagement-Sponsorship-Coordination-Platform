@@ -70,6 +70,9 @@ const AllInfluencers = {
           this.SearchQuery === "" ||
           Object.values(influencer).some((value) =>
             String(value).toLowerCase().includes(this.SearchQuery.toLowerCase())
+          ) ||
+          Object.values(influencer.influencer_data).some((value) =>
+            String(value).toLowerCase().includes(this.SearchQuery.toLowerCase())
           );
 
         const followerCount = influencer.influencer_data.followers || 0;
