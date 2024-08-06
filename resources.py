@@ -447,16 +447,7 @@ class AdminResource(Resource):
             return {'error': 'Invalid entity type'}, 400
 
 
-# class AllInfluencers(Resource):
-#     @auth_required('session')
-#     @roles_required('sponsor')
-#     def get(self):
-#         all_users = User.query.filter_by(active=True, flagged=False).all()
-#         users = [user.to_dict() for user in all_users if user.has_role('influencer')]
-#         return users
-
 api.add_resource(CampaignResource, '/campaign', '/campaign/<int:campaign_id>')
 api.add_resource(AdRequestResource, '/ad-request', '/ad-request/<int:ad_request_id>', '/ad-request/c/<int:campaign_id>')
 api.add_resource(UserResource, '/user', '/user/<int:user_id>', '/user/<string:all>')
 api.add_resource(AdminResource, '/admin/<string:entity_type>', '/admin/<string:entity_type>/<int:id>')
-# api.add_resource(AllInfluencers, '/user/all')

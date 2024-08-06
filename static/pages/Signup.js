@@ -164,9 +164,9 @@ const Signup = {
         return false;
       }
 
-      const url = window.location.origin;
       const btn = document.getElementById("submitBtn");
       btn.disabled = true;
+      const url = window.location.origin;
       try {
         const res = await fetch(url + "/signup", {
           method: "POST",
