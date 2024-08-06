@@ -3,7 +3,7 @@ import Campaign from "../components/Campaign.js";
 import router from "../utils/router.js";
 const Home = {
   template: `
-  <div class="container mt-4">
+  <div>
     <h2 v-if="!isLoggedIn">Please Login to view the masala-e-magic</h2>
     <div v-if="isLoggedIn">
       <div  class="card rounded shadow mt-4 mb-2">

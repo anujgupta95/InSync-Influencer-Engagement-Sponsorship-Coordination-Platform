@@ -5,8 +5,25 @@ from extensions import db
 from env import PUBLIC_ROLES
 from models import SponsorData, InfluencerData
 import datetime
+from tasks import create_csv
+from celery.result import AsyncResult
 
 def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore, cache):
+
+    @app.get("/result/<id>")
+    def task_result(id: str) -> dict[str, object]:
+        result = AsyncResult(id)
+        return {
+            "ready": result.ready(),
+            "successful": result.successful(),
+            "value": result.result if result.ready() else None,
+        }
+    
+    @app.route('/users/csv')
+    def export_users_csv():
+        task = create_csv.delay()
+        return jsonify({"task_id": task.id})
+
 
     @app.route('/cachedemo')
     @cache.cached(timeout=50)
