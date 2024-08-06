@@ -2,14 +2,11 @@ import Campaign from "../../components/Campaign.js";
 import AdRequest from "../../components/AdRequest.js";
 const DashboardSponsor = {
   template: `
-    <div>
-      <h1>Sponsor Dashboard</h1>
-      <div class="container mt-4">
-        
+      <div class="container-lg mt-4">
         <div class="card rounded shadow mb-2">
           <div class="card-body">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <h3 class="flex-grow-1">Ad Requests</h3>
+              <h3 class="flex-grow-1">{{filteredAdRequests.length}} Ad Requests</h3>
               <button class="btn btn-outline-secondary" @click="resetAdRequestFilter">Clear Filter</button>
             </div>
             <div class="d-flex mb-3 row g-2">
@@ -33,7 +30,7 @@ const DashboardSponsor = {
         <div v-if="filteredAdRequests.length === 0">
             <p>No ad requests found.</p>
         </div>
-        <div v-else class="card card-body">
+        <div v-else class="card card-body rounded shodow">
           <table class="text-center rounded">
             <thead>
               <tr>
@@ -56,7 +53,7 @@ const DashboardSponsor = {
         <div class="card rounded shadow mt-4 mb-2">
           <div class="card-body">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <h3 class="flex-grow-1">All Campaigns</h3>
+              <h3 class="flex-grow-1">My Campaigns</h3>
               <router-link to="/sponsor/campaign/add" class="btn btn-success me-2">Add Campaign</router-link>
               <button class="btn btn-outline-secondary" @click="resetCampaignFilter">Clear Filter</button>
             </div>
@@ -90,12 +87,11 @@ const DashboardSponsor = {
           </div>
         </div>
         
-        <div class="d-flex row">
-          <Campaign v-for="campaign in filteredCampaigns" :key="campaign.id" :campaign="campaign"
+        <div class="d-flex row container">
+          <Campaign v-for="campaign in filteredCampaigns" :key="campaign.id" :campaign="campaign" 
             @delete="removeCampaign" @update="handleUpdate" :showCreateAdRequestButton='true' class="shadow col-12 col-sm-6 col-md-6 col-lg-4 mb-2"/>
         </div>
-      </div>  
-    </div>
+      </div> 
     `,
   data() {
     return {

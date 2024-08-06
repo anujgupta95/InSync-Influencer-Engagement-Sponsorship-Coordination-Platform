@@ -13,24 +13,6 @@ const Navbar = {
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Dropdown
-                </a>
-                <ul class="dropdown-menu">
-                  <li><router-link to="/profile" class="dropdown-item">Profile</router-link></li>
-                  <li v-if="userRole === 'sponsor'">
-                    <router-link to="/sponsor/dashboard" class="dropdown-item">Sponsor Dashboard</router-link>
-                  </li>
-                  <li v-if="userRole === 'sponsor'">
-                    <router-link to="/sponsor/addCampaign" class="dropdown-item">Add Campaign</router-link>
-                  </li>
-                  <li><hr class="dropdown-divider" /></li>
-                </ul>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-              </li>
             </ul>
             <ul class="navbar-nav mb-2 mb-lg-0">
               <li class="nav-item" v-if="!isLoggedIn">

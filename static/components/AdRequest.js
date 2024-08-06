@@ -2,7 +2,7 @@ import router from "../utils/router.js";
 import store from "../utils/store.js";
 const AdRequest = {
   template: `
-      <tr :class="trClass">
+      <tr>
         <th v-if="!hideCampaignId">{{ adRequest.campaign_id }}</th>
         <td >{{ adRequest.user_id }}</td>
         <td>{{ adRequest.messages }}</td>
@@ -24,16 +24,7 @@ const AdRequest = {
       default: false,
     },
   },
-  computed: {
-    trClass() {
-      return {
-        "custom-bg-success": this.adRequest.status == "accepted",
-        "custom-bg-warning": this.adRequest.status == "negotiating",
-        "custom-bg-danger": this.adRequest.status == "rejected",
-        "custom-bg": this.adRequest == "pending",
-      };
-    },
-  },
+
   methods: {
     async viewAdRequest() {
       if (store.getters.userRole == "sponsor") {
