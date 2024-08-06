@@ -8,6 +8,11 @@ kill_process() {
 # Kill the Flask server
 kill_process 'flask run'
 
+# Kill Celery worker and beat processes
+kill_process 'celery -A app:celery_app worker'
+kill_process 'celery -A app:celery_app beat'
+kill_process 'celery'
+
 # Shut down Redis server
 echo "Shutting down Redis server..."
 redis-cli shutdown

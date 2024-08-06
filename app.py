@@ -4,7 +4,7 @@ from extensions import db, security, cache
 from env import APP_SECRET_KEY, SQLALCHEMY_DATABASE_URI, SECURITY_PASSWORD_SALT
 from create_initial_data import create_data
 import resources
-from worker import celery_init_app
+from celery_worker.worker import celery_init_app
 import flask_excel as excel
 from tasks import daily_reminder
 from celery.schedules import crontab
