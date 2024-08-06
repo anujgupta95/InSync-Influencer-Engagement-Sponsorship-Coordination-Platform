@@ -11,7 +11,7 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore, cache):
     @app.route('/cachedemo')
     @cache.cached(timeout=50)
     def cache():
-        return datetime.datetime.now()
+        return jsonify({"time" : datetime.datetime.now()})
 
     @app.route('/')
     def home():
