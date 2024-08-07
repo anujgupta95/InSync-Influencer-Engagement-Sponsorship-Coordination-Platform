@@ -2,7 +2,7 @@ from flask import Flask
 import routes
 from extensions import db, security, cache
 from env import APP_SECRET_KEY, SQLALCHEMY_DATABASE_URI, SECURITY_PASSWORD_SALT
-from create_initial_data import create_data
+from extensions.create_initial_data import create_data
 import resources
 from celery_worker import celery_init_app
 import flask_excel as excel
@@ -62,14 +62,15 @@ excel.init_excel(app)
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Calls test('hello') every 10 seconds.
-    sender.add_periodic_task(100, daily_reminder.s('hello'), name='add every 10')
+    # sender.add_periodic_task(100, daily_reminder.s('hello'), name='add every 10')
 
-    # Executes every Monday morning at 7:30 a.m.
+    # Executes every evening at 8p.m
+    sender.add_periodic_task(
+        crontab(hour='20'),daily_reminder.s(), name="Daily Login reminders"
+    )
     # sender.add_periodic_task(
-    #     crontab(hour=7, minute=30, day_of_week=1),
-    #     fn_name.s('Happy Mondays!'),
+    #     crontab(hour='18', minute='*/15'),daily_reminder.s(), name="Daily Login reminders"
     # )
 
 if __name__=='__main__':
-    
     app.run(debug=True, host='0.0.0.0')

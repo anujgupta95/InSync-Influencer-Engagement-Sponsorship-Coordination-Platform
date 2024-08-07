@@ -3,13 +3,22 @@ import Campaign from "../components/Campaign.js";
 import router from "../utils/router.js";
 const Home = {
   template: `
-  <div>
+  <div class="container">
     <h2 v-if="!isLoggedIn">Please Login to view the masala-e-magic</h2>
     <div v-if="isLoggedIn">
       <div  class="card rounded shadow mt-4 mb-2">
         <div class="card-body">
           <div class="d-flex align-items-center justify-content-between mb-3">
             <h3 class="flex-grow-1">Public Campaigns</h3>
+            <div v-if="userRole === 'sponsor'" class="btn-group">
+              <button class="btn btn-dark me-2 dropdown-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download"></i> Export as CSV
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/export/campaigns">Download now</a></li>
+                <li><a class="dropdown-item" href="#" @click="receiveViaEmail">Receive via email</a></li>
+              </ul>
+            </div>
             <router-link v-if="userRole === 'sponsor'" to="/sponsor/campaign/add" class="btn btn-success me-2">Add Campaign</router-link>
             <button class="btn btn-outline-secondary" @click="resetCampaignFilter">Clear Filter</button>
           </div>
@@ -111,6 +120,19 @@ const Home = {
       this.campaignSearchQuery = "";
       this.startDate = "";
       this.endDate = "";
+    },
+    async receiveViaEmail() {
+      const url = window.location.origin + "/export/campaigns?medium=email";
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          window.triggerToast("CSV will be sent to your email shortly", "success");
+        } else {
+          window.triggerToast("Failed to send CSV via email", "danger");
+        }
+      } catch (error) {
+        window.triggerToast("Failed to send CSV via email", "danger");
+      }
     },
   },
 };

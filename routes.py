@@ -1,34 +1,15 @@
-from flask import Flask, jsonify, render_template_string, render_template, request
-from flask_security import current_user, auth_required, roles_required, SQLAlchemyUserDatastore, roles_accepted
+from flask import Flask, jsonify, render_template, request
+from flask_security import current_user, auth_required, roles_required, SQLAlchemyUserDatastore
 from flask_security.utils import hash_password
 from extensions import db
 from env import PUBLIC_ROLES
-from models import SponsorData, InfluencerData
+from models import Campaign, SponsorData, InfluencerData
 import datetime
-from tasks import create_csv
 from celery.result import AsyncResult
+import flask_excel as excel
+from tasks import send_campaigns_csv
 
 def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore, cache):
-
-    @app.get("/result/<id>")
-    def task_result(id: str) -> dict[str, object]:
-        result = AsyncResult(id)
-        return {
-            "ready": result.ready(),
-            "successful": result.successful(),
-            "value": result.result if result.ready() else None,
-        }
-    
-    @app.route('/users/csv')
-    def export_users_csv():
-        task = create_csv.delay()
-        return jsonify({"task_id": task.id})
-
-
-    @app.route('/cachedemo')
-    @cache.cached(timeout=50)
-    def cache():
-        return jsonify({"time" : datetime.datetime.now()})
 
     @app.route('/')
     def home():
@@ -110,3 +91,31 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore, cache):
             return jsonify({"error": f"Error while creating user: {str(e)}"}), 500
         db.session.commit()
         return jsonify({"message": "User created"}), 200
+    
+    
+    @app.get("/result/<id>")
+    def task_result(id: str) -> dict[str, object]:
+        result = AsyncResult(id)
+        return {
+            "ready": result.ready(),
+            "successful": result.successful(),
+            "value": result.result if result.ready() else None,
+        }
+    
+    @app.route('/export/campaigns')
+    @auth_required()
+    @roles_required('sponsor')
+    def export_campaigns():
+        medium = request.args.get('medium')
+        if medium is None:
+            campaigns = Campaign.query.filter_by(user_id=current_user.id).all()
+            column_names = ['id', 'name', 'description', 'start_date', 'end_date', 'budget', 'visibility', 'goals']
+            return excel.make_response_from_query_sets(campaigns, column_names, 'csv', status=200)
+        else:
+            task = send_campaigns_csv.delay(current_user.id, current_user.email)
+            return "CSV will be sent to your email shortly", 200
+    
+    @app.route('/cachedemo')
+    @cache.cached(timeout=50)
+    def cache():
+        return jsonify({"time" : datetime.datetime.now()})
