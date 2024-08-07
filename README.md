@@ -20,7 +20,7 @@ It's a platform to connect Sponsors and Influencers so that sponsors can get the
 ## Roles - The platform will have three roles;
 
 ### Admin - root access
-> An admin can monitor all the users/campaigns, see all the statistics
+* An admin can monitor all the users/campaigns, see all the statistics
 Ability to flag inappropriate campaigns/users
 
 ### Sponsors - a company/individual who wants to advertise their product/service
