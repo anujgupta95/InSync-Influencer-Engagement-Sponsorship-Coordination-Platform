@@ -26,7 +26,7 @@ const SponsorCampaignDetails = {
             <div v-if="adRequests.length === 0">
                 <h4>No ad requests found.</h4>
             </div>
-            <div v-else>
+            <div v-else class="table-responsive">
               <table class="text-center rounded col-12">
                 <thead>
                   <tr>

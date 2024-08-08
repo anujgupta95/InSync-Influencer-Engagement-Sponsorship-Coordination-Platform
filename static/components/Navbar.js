@@ -12,27 +12,41 @@ const Navbar = {
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            </ul>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0"></ul>
             <ul class="navbar-nav mb-2 mb-lg-0">
-              <li class="nav-item" v-if="!isLoggedIn">
-                <router-link to="/login" class="nav-link">Login</router-link>
-              </li>
-              <li class="nav-item" v-if="!isLoggedIn">
-                <router-link to="/signup" class="nav-link">Sign Up</router-link>
-              </li>
-              <li v-if="userRole === 'sponsor'" class="nav-item">
-                  <router-link to="/influencers" class="nav-link">Influencers</router-link>
-              </li>
-              <li v-if="userRole === 'sponsor'" class="nav-item">
-                  <router-link to="/sponsor/dashboard" class="nav-link">Dashboard</router-link>
-              </li>
+              <template v-if="!isLoggedIn">
+                <li class="nav-item">
+                  <router-link to="/login" class="nav-link">Login</router-link>
+                </li>
+                <li class="nav-item">
+                  <router-link to="/signup" class="nav-link">Sign Up</router-link>
+                </li>
+              </template>
+              <template v-if="userRole === 'sponsor'">
+                <li class="nav-item">
+                    <router-link to="/influencers" class="nav-link">Influencers</router-link>
+                </li>
+                <li class="nav-item">
+                    <router-link to="/sponsor/dashboard" class="nav-link">Dashboard</router-link>
+                </li>
+              </template>
               <li v-if="userRole === 'influencer'" class="nav-item">
                   <router-link to="/influencer/dashboard" class="nav-link">Dashboard</router-link>
               </li>
-              <li v-if="userRole === 'admin'" class="nav-item">
-                  <router-link to="/admin/dashboard" class="nav-link">Dashboard</router-link>
-              </li>
+              <template v-if="userRole === 'admin'">
+                <li class="nav-item">
+                    <router-link to="/admin/users" class="nav-link">Users</router-link>
+                </li>
+                <li class="nav-item">
+                    <router-link to="/admin/campaigns" class="nav-link">Campaigns</router-link>
+                </li>
+                <li class="nav-item">
+                    <router-link to="/admin/ad-requests" class="nav-link">Ad Requests</router-link>
+                </li>
+                <li class="nav-item">
+                    <router-link to="/admin/dashboard" class="nav-link">Dashboard</router-link>
+                </li>
+              </template>
               <li class="nav-item dropdown ms-2" v-if="isLoggedIn" >
                 <a class="nav-link dropdown-header fs-2 bi bi-person-circle icon-link" data-bs-toggle="dropdown" role="button" aria-expanded="false">
                 </a>

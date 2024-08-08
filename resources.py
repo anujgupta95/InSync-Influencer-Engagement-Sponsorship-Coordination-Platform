@@ -4,7 +4,7 @@ from flask import request, jsonify
 from models import Campaign, AdRequest, Role, User, SponsorData, InfluencerData, UserRoles
 from extensions import db, cache
 from datetime import date, datetime
-from env import ALL_ROLES
+from env import ADMIN_EMAIL, ALL_ROLES
 from sqlalchemy import or_
 
 api = Api(prefix='/api')
@@ -20,7 +20,8 @@ class CampaignResource(Resource):
         'end_date' : fields.String,
         'budget' : fields.Float,
         'visibility' : fields.String,
-        'goals' : fields.String
+        'goals' : fields.String,
+        'flagged' :fields.Boolean
     }
 
     parser.add_argument('name', type=str, required=True, help='Name cannot be blank')
@@ -33,7 +34,7 @@ class CampaignResource(Resource):
 
     @auth_required()
     @marshal_with(campaign_fields)
-    # @cache.cached(timeout=30, query_string=True)
+    @cache.cached(timeout=30, query_string=True)
     def get(self, campaign_id=None):
         if current_user.has_role('admin'):
             if campaign_id is None:
@@ -248,6 +249,7 @@ class AdRequestResource(Resource):
                 if args.status in ['accepted', 'rejected']:
                     notes += f"Ad Request {args.status.capitalize()}\n\n"
                     ad_request.status = args.status
+                    ad_request.revised_payment_amount = args.revised_payment_amount if args.revised_payment_amount else ad_request.payment_amount
                     
                 if ad_request.status == 'negotiating':
                     if 'revised_payment_amount' in args:
@@ -347,7 +349,7 @@ class UserResource(Resource):
                 # return [user.to_dict() for user in users]
             
             user = User.query.get(user_id)
-            if not user or user.roles[0]!='influencer' or not user.active or user.flagged:
+            if not user or user.roles[0]!='influencer' or not user.active:
                 return {'error': 'Influencer not found'}, 404
             return user.to_dict()
 
@@ -416,39 +418,81 @@ class AdminResource(Resource):
     @auth_required()
     @roles_required('admin')
     def get(self, entity_type):
-        if entity_type == 'sponsor':
+        if entity_type == "users":
+            users = User.query.all()
+            return [user.to_dict() for user in users]
+        elif entity_type == 'inactive_sponsors':
             all_users = User.query.filter_by(active=False).all()
             users = [user for user in all_users if user.has_role('sponsor')]
             return [user.to_dict() for user in users]
         elif entity_type == 'campaigns':
-            campaigns = Campaign.query.filter(Campaign.flagged == True).all()
+            campaigns = Campaign.query.all()
             return [campaign.to_dict() for campaign in campaigns]
         elif entity_type == 'ad_requests':
-            ad_requests = AdRequest.query.filter(AdRequest.status == 'flagged').all()
+            ad_requests = AdRequest.query.filter().all()
             return [ad_request.to_dict() for ad_request in ad_requests]
-        else:
-            return {'error': 'Invalid entity type'}, 400
+        elif entity_type == "all_data":
+            users = User.query.filter(User.email != ADMIN_EMAIL).all()
+            campaigns = Campaign.query.all()
+            ad_requests = AdRequest.query.all()
+            
+            return {
+                'users': [user.to_dict() for user in users],
+                'campaigns': [campaign.to_dict() for campaign in campaigns],
+                'ad_requests': [ad_request.to_dict() for ad_request in ad_requests],
+            }
+        return {'error': 'Invalid entity type'}, 400
     
     @auth_required()
     @roles_required('admin')
-    def put(self, entity_type, id):
-        if entity_type == 'sponsor':
+    def put(self, entity_type, id, action):
+        if entity_type == "sponsor":
             sponsor = User.query.get(id)
-            sponsor.influencer_data = None
-            sponsor.active = True
-            db.session.commit()
-            return {'message': "Sponsor activated sucessfully!"},200
-        elif entity_type == 'campaigns':
-            campaigns = Campaign.query.filter(Campaign.flagged == True).all()
-            return [campaign.to_dict() for campaign in campaigns]
-        elif entity_type == 'ad_requests':
-            ad_requests = AdRequest.query.filter(AdRequest.status == 'flagged').all()
-            return [ad_request.to_dict() for ad_request in ad_requests]
-        else:
-            return {'error': 'Invalid entity type'}, 400
+            if sponsor and action == "active":
+                sponsor.influencer_data = None
+                sponsor.active = True
+                db.session.commit()
+                return {'message': "Sponsor activated successfully!"}, 200
+            else:
+                return {'error': 'Sponsor not found'}, 404
+                
+        elif entity_type == 'user':
+            user = User.query.get(id)
+            if not user:
+                return {'error': 'User not found'}, 404
 
+            if action == 'flag':
+                user.flagged = True
+                user.active = False
+                db.session.commit()
+                return {'message': "User flagged successfully!"}, 200
+            elif action == 'unflag':
+                user.flagged = False
+                user.active = True
+                db.session.commit()
+                return {'message': "User unflagged successfully!"}, 200
+            else:
+                return {'error': 'Invalid action'}, 400
+            
+        elif entity_type == 'campaign':
+            campaign = Campaign.query.get(id)
+            if not campaign:
+                return {'error': 'Campaign not found'}, 404
+
+            if action == 'flag':
+                campaign.flagged = True
+                db.session.commit()
+                return {'message': "Campaign flagged successfully!"}, 200
+            elif action == 'unflag':
+                campaign.flagged = False
+                db.session.commit()
+                return {'message': "Campaign unflagged successfully!"}, 200
+            else:
+                return {'error': 'Invalid action'}, 400
+        else:
+            return {'error': 'Invalid entity type'}, 400   
 
 api.add_resource(CampaignResource, '/campaign', '/campaign/<int:campaign_id>')
 api.add_resource(AdRequestResource, '/ad-request', '/ad-request/<int:ad_request_id>', '/ad-request/c/<int:campaign_id>')
 api.add_resource(UserResource, '/user', '/user/<int:user_id>', '/user/<string:all>')
-api.add_resource(AdminResource, '/admin/<string:entity_type>', '/admin/<string:entity_type>/<int:id>')
+api.add_resource(AdminResource, '/admin/<string:entity_type>', '/admin/<string:entity_type>/<int:id>//<string:action>')

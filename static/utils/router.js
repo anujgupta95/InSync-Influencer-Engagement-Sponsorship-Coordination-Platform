@@ -18,6 +18,9 @@ import InfluencerCampaignDetails from "../pages/influencer/InfluencerCampaignDet
 import InfluencerAdRequest from "../pages/influencer/InfluencerAdRequest.js";
 
 import DashboardAdmin from "../pages/admin/DashboardAdmin.js";
+import AdminUsers from "../pages/admin/AdminUsers.js";
+import AdminCampaigns from "../pages/admin/AdminCampaigns.js";
+import AdminAdRequests from "../pages/admin/AdminAdRequest.js";
 
 const routes = [
   { path: "/", component: Home },
@@ -68,6 +71,21 @@ const routes = [
   {
     path: `/admin/dashboard`,
     component: DashboardAdmin,
+    meta: { requiresAuth: true, requiredRole: "admin" },
+  },
+  {
+    path: `/admin/users`,
+    component: AdminUsers,
+    meta: { requiresAuth: true, requiredRole: "admin" },
+  },
+  {
+    path: `/admin/campaigns`,
+    component: AdminCampaigns,
+    meta: { requiresAuth: true, requiredRole: "admin" },
+  },
+  {
+    path: `/admin/ad-requests`,
+    component: AdminAdRequests,
     meta: { requiresAuth: true, requiredRole: "admin" },
   },
 ];

@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, nullable=False, default=dt.now())
     updated_at = db.Column(db.DateTime, nullable=False, default=dt.now(), onupdate=dt.now())
     roles = db.relationship('Role', secondary = 'user_roles', backref='users')
-    campaigns = db.relationship('Campaign', backref='user', cascade='all, delete-orphan') 
+    campaigns = db.relationship('Campaign', backref='user', cascade='all, delete-orphan')
 
     # Relationship to extend user-specific data
     sponsor_data = db.relationship('SponsorData', uselist=False, backref='user', cascade='all, delete-orphan')
@@ -51,7 +51,9 @@ class User(db.Model, UserMixin):
             'role': self.roles[0].name,
             'active':self.active,
             'flagged': self.flagged,
-            'influencer_data': self.influencer_data.to_dict() if self.influencer_data else None
+            'influencer_data': self.influencer_data.to_dict() if self.influencer_data else None,
+            'sponsor_data': self.sponsor_data.to_dict() if self.sponsor_data else None,
+            'campaigns': len(self.campaigns)
         }
 
         
@@ -88,11 +90,12 @@ class Campaign(db.Model):
             'user_id' : self.user_id,
             'name': self.name,
             'description': self.description,
-            'start_date': self.start_date,
-            'end_date': self.end_date,
+            'start_date': str(self.start_date),
+            'end_date': str(self.end_date),
             'budget': self.budget,
             'visibility': self.visibility,
-            'goals': self.goals
+            'goals': self.goals,
+            'flagged': self.flagged,
         }
 
 class AdRequest(db.Model):

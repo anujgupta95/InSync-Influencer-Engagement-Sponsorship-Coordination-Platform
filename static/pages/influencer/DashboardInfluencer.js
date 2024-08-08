@@ -2,7 +2,7 @@ import router from "../../utils/router.js";
 const DashboardInfluencer = {
   template: `
     <div class="container mt-4">
-      <div class="card rounded shadow">
+      <div class="card rounded shadow table-responsive">
           <p class="card-header h4">{{adRequests.length}} Active Ad Requests</p>
           <table v-if="adRequests.length > 0" class="text-center rounded card-body">
             <thead>

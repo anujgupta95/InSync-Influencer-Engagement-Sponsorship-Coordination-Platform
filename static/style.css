@@ -7,6 +7,10 @@ a {
   text-decoration: none;
 }
 
+body{
+  background-color: rgba(255, 255, 255, 0.684);
+}
+
 body::before {
   content: "";
   position: fixed;
@@ -99,4 +103,11 @@ tbody tr:hover {
 
 .toast.show {
   opacity: 1;
+}
+
+.text-truncate, td, th {
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

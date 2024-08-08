@@ -26,7 +26,7 @@ const InfluencerCampaignDetails = {
             <div v-if="!adRequest.status">
                 <p class="card-text"><strong>No ad requests found</strong></p>
             </div>
-            <div v-else>
+            <div v-else class="table-responsive">
               <table class="text-center rounded col-12">
                 <thead>
                   <tr>

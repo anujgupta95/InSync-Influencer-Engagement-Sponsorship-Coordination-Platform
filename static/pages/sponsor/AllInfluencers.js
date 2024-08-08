@@ -30,7 +30,7 @@ const AllInfluencers = {
               </div>
           </div>
   
-          <div class="card mt-2">
+          <div class="card mt-2 table-responsive">
               <table v-if="filterInfluencers.length > 0" class="text-center rounded card-body">
                   <thead>
                       <tr>

@@ -1,3 +1,4 @@
+import store from "../../utils/store.js";
 import Campaign from "../../components/Campaign.js";
 import AdRequest from "../../components/AdRequest.js";
 const DashboardSponsor = {
@@ -30,7 +31,7 @@ const DashboardSponsor = {
         <div v-if="filteredAdRequests.length === 0">
             <p>No ad requests found.</p>
         </div>
-        <div v-else class="card card-body rounded shodow">
+        <div v-else class="card card-body rounded shodow table-responsive">
           <table class="text-center rounded">
             <thead>
               <tr>
@@ -54,6 +55,15 @@ const DashboardSponsor = {
           <div class="card-body">
             <div class="d-flex align-items-center justify-content-between mb-3">
               <h3 class="flex-grow-1">My Campaigns</h3>
+              <div v-if="userRole === 'sponsor'" class="btn-group">
+                <button class="btn btn-dark me-2 dropdown-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-download"></i> Export as CSV
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="/export/campaigns">Download now</a></li>
+                  <li><a class="dropdown-item" href="#" @click="receiveViaEmail">Receive via email</a></li>
+                </ul>
+              </div>
               <router-link to="/sponsor/campaign/add" class="btn btn-success me-2">Add Campaign</router-link>
               <button class="btn btn-outline-secondary" @click="resetCampaignFilter">Clear Filter</button>
             </div>
@@ -106,6 +116,9 @@ const DashboardSponsor = {
     };
   },
   computed: {
+    userRole() {
+      return store.getters.userRole;
+    },
     filteredCampaigns() {
       return this.campaigns.filter((campaign) => {
         const matchesSearchQuery =
@@ -200,6 +213,19 @@ const DashboardSponsor = {
     resetAdRequestFilter() {
       this.adRequestSearchQuery = "";
       this.selectedAdRequestStatus = "";
+    },
+    async receiveViaEmail() {
+      const url = window.location.origin + "/export/campaigns?medium=email";
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          window.triggerToast("CSV will be sent to your email shortly", "success");
+        } else {
+          window.triggerToast("Failed to send CSV via email", "danger");
+        }
+      } catch (error) {
+        window.triggerToast("Failed to send CSV via email", "danger");
+      }
     },
   },
   components: {
