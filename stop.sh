@@ -7,6 +7,7 @@ kill_process() {
 
 # Kill the Flask server
 kill_process 'flask run'
+kill_process 'flask'
 
 # Kill Celery worker and beat processes
 kill_process 'celery -A app:celery_app worker'

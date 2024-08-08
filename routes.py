@@ -1,11 +1,11 @@
-from flask import Flask, jsonify, render_template, request
+import base64
+from flask import Flask, jsonify, render_template, request, make_response
 from flask_security import current_user, auth_required, roles_required, SQLAlchemyUserDatastore
 from flask_security.utils import hash_password
 from extensions import db
 from env import PUBLIC_ROLES
-from models import Campaign, SponsorData, InfluencerData
-import datetime
-from celery.result import AsyncResult
+from models import Campaign, Role, SponsorData, InfluencerData, User, UserRoles
+from datetime import datetime as dt, timedelta
 import flask_excel as excel
 from tasks import send_campaigns_csv
 
@@ -28,6 +28,7 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore, cache):
     
     @app.route('/check_login')
     @auth_required('session', 'token')
+    @cache.cached(timeout=10)
     def is_login():
         return jsonify({
             "loggedIn": True,
@@ -92,16 +93,6 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore, cache):
         db.session.commit()
         return jsonify({"message": "User created"}), 200
     
-    
-    @app.get("/result/<id>")
-    def task_result(id: str) -> dict[str, object]:
-        result = AsyncResult(id)
-        return {
-            "ready": result.ready(),
-            "successful": result.successful(),
-            "value": result.result if result.ready() else None,
-        }
-    
     @app.route('/export/campaigns')
     @auth_required()
     @roles_required('sponsor')
@@ -114,8 +105,60 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore, cache):
         else:
             task = send_campaigns_csv.delay(current_user.id, current_user.email)
             return "CSV will be sent to your email shortly", 200
-    
-    @app.route('/cachedemo')
-    @cache.cached(timeout=50)
-    def cache():
-        return jsonify({"time" : datetime.datetime.now()})
+        
+
+    # @app.route('/generate-monthly-report', methods=['GET'])
+    # @auth_required('session', 'token')
+    # @roles_required('sponsor')
+    # def generate_monthly_report(sponsor_id=None):
+    #     try:
+    #         user = User.query.get(current_user.id)
+    #         now = dt.now()
+    #         year = now.year
+    #         month = now.month
+    #         start_date = dt(year, month, 1)
+    #         end_date = dt(year, month + 1, 1) - timedelta(days=1) if month < 12 else dt(year + 1, 1, 1) - timedelta(days=1)
+            
+    #         sponsor = user.sponsor_data
+    #         influencers = User.query.join(UserRoles).join(Role).filter(Role.name == 'influencer').all()
+
+    #         campaigns = Campaign.query.filter(Campaign.user_id == user.id,Campaign.start_date >= start_date,Campaign.start_date <= end_date).all()
+    #         campaign_dict = {campaign.id: campaign.name for campaign in campaigns}
+    #         influencer_dict = {influencer.id: influencer.name for influencer in influencers}
+
+    #         ad_requests = []
+    #         report_data = []
+    #         for campaign in campaigns:
+    #             total_ads = 0
+    #             budget_used = 0
+    #             for ad_request in campaign.ad_requests:
+    #                 if ad_request.user_id not in [None,0]:
+    #                     total_ads += 1
+    #                     budget_used += ad_request.revised_payment_amount or ad_request.payment_amount
+    #                 ad_requests.append(ad_request)
+
+    #             report_data.append({
+    #                 'campaign_name': campaign.name,
+    #                 'total_ads': total_ads,
+    #                 'budget_used': budget_used
+    #             })
+            
+    #         with open('static/bg.jpg', "rb") as image_file:
+    #             bg_img= base64.b64encode(image_file.read()).decode('utf-8')
+
+    #         html = render_template(
+    #             'monthly_report.html',
+    #             start_date=start_date.strftime('%d-%b-%Y'), end_date=end_date.strftime('%d-%b-%Y'), report_data=report_data,
+    #             user=user, sponsor=sponsor, campaigns=campaigns, ad_requests=ad_requests,
+    #             campaign_dict=campaign_dict,influencer_dict=influencer_dict, bg_img=bg_img
+    #         )
+
+    #         response = make_response(html)
+    #         response.headers['Content-Type'] = 'text/html'
+    #         response.headers['Content-Disposition'] = 'attachment; filename=monthly_report.html'
+    #         return html
+    #         return response
+            
+    #     except Exception as e:
+    #         # Handle exceptions and return an error message
+    #         return jsonify({"error": str(e)}), 500

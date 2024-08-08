@@ -6,8 +6,9 @@ from extensions.create_initial_data import create_data
 import resources
 from celery_worker import celery_init_app
 import flask_excel as excel
-from tasks import daily_reminder
+from tasks import daily_reminder, monthly_report
 from celery.schedules import crontab
+from datetime import datetime as dt
 
 def create_app():
     app = Flask(__name__)
@@ -64,13 +65,15 @@ def setup_periodic_tasks(sender, **kwargs):
     # Calls test('hello') every 10 seconds.
     # sender.add_periodic_task(100, daily_reminder.s('hello'), name='add every 10')
 
-    # Executes every evening at 8p.m
     sender.add_periodic_task(
         crontab(hour='20'),daily_reminder.s(), name="Daily Login reminders"
     )
     # sender.add_periodic_task(
-    #     crontab(hour='18', minute='*/15'),daily_reminder.s(), name="Daily Login reminders"
+    #     crontab(0, 0, day_of_month='1'),monthly_report.s(dt.now()), name="Monthly Report"
     # )
+    sender.add_periodic_task(
+        crontab(minute="*/2"),monthly_report.s(dt.now()), name="Monthly Report"
+    )
 
 if __name__=='__main__':
     app.run(debug=True, host='0.0.0.0')
