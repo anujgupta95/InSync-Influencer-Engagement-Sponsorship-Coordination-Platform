@@ -68,12 +68,12 @@ def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
         crontab(hour='20'),daily_reminder.s(), name="Daily Login reminders"
     )
-    # sender.add_periodic_task(
-    #     crontab(0, 0, day_of_month='1'),monthly_report.s(dt.now()), name="Monthly Report"
-    # )
     sender.add_periodic_task(
-        crontab(minute="*/2"),monthly_report.s(dt.now()), name="Monthly Report"
+        crontab(0, 0, day_of_month='1'),monthly_report.s(dt.now()), name="Monthly Report"
     )
+    # sender.add_periodic_task(
+    #     crontab(minute="*/2"),monthly_report.s(dt.now()), name="Monthly Report"
+    # )
 
 if __name__=='__main__':
     app.run(debug=True, host='0.0.0.0')
