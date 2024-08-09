@@ -66,9 +66,9 @@ const DashboardAdmin = {
             <th>ID</th>
             <th>Name</th>
             <th>Email</th>
-            <th>Company</th>
+            <!--<th>Company</th>
             <th>Industry</th>
-            <th>Budget</th>
+            <th>Budget</th>-->
             <th>Actions</th>
           </tr>
         </thead>
@@ -77,9 +77,9 @@ const DashboardAdmin = {
             <td>{{ sponsor.id }}</td>
             <td>{{ sponsor.name }}</td>
             <td>{{ sponsor.email }}</td>
-            <td>{{ sponsor.sponsor_data.company_name }}</td>
-            <td>{{ sponsor.sponsor_data.industry }}</td>
-            <td>{{ sponsor.sponsor_data.budget }}</td>
+            <!--<td>{{ sponsor.sponsor_data?.company_name }}</td>
+            <td>{{ sponsor.sponsor_data?.industry }}</td>
+            <td>{{ sponsor.sponsor_data?.budget }}</td>-->
             <td>
               <button class="btn btn-success" @click="approveSponsor(sponsor.id)">Approve</button>
             </td>
@@ -118,6 +118,8 @@ const DashboardAdmin = {
       try {
         const response = await fetch("/api/admin/all_data");
         const data = await response.json();
+
+        this.pendingSponsors = data.users.filter(user =>  !user.flagged && !user.active && user.role==="sponsor");
 
         // Calculate User statistics
         this.totalUsers = data.users.length;

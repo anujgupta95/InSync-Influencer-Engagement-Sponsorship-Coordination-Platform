@@ -87,10 +87,10 @@ const AllInfluencers = {
     maxFollowers() {
       if (this.influencers.length === 0) return 1000000;
       return Math.max(
-        ...this.influencers.map(
+        this.influencers.map(
           (influencer) => influencer.influencer_data.followers
         )
-      );
+      )+500;
     },
   },
   mounted() {
@@ -99,7 +99,7 @@ const AllInfluencers = {
   methods: {
     async updateInfluencers() {
       try {
-        const res = await fetch("/api/user/all");
+        const res = await fetch("/api/users/all");
         this.influencers = await res.json();
       } catch (error) {
         window.triggerToast(error, "warning");

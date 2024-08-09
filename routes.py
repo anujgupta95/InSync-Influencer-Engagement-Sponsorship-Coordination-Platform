@@ -28,7 +28,6 @@ def create_routes(app: Flask, user_datastore: SQLAlchemyUserDatastore, cache):
     
     @app.route('/check_login')
     @auth_required('session', 'token')
-    @cache.cached(timeout=10)
     def is_login():
         return jsonify({
             "loggedIn": True,

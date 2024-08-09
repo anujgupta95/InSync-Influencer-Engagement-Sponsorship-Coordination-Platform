@@ -5,7 +5,7 @@ const Navbar = {
       <!-- fixed-top -->
       <nav class="navbar navbar-expand-lg shadow rounded m-2 p-2">
         <div class="container-fluid">
-          <a class="navbar-brand" href="#">
+          <a class="navbar-brand" href="/">
             <img src="/static/logo.png" alt="InSync Logo"  height="50" class="d-inline-block align-text-top">
           </a>
           <button class="navbar-toggler"

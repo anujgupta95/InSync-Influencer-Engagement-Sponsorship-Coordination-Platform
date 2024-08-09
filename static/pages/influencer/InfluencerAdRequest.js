@@ -28,10 +28,10 @@ const InfluencerAdRequest = {
                   <div v-if="adRequest.status === 'negotiating'" class="mt-4">
                       <h4>Message</h4>
                       <div class="mb-3">
-                      <textarea v-model="negotiationNotes" class="form-control" rows="3" placeholder="Add message"></textarea>
+                        <textarea v-model="negotiationNotes" class="form-control" rows="3" placeholder="Add message"></textarea>
                       </div>
                       <div class="mb-3">
-                      <input v-model="revisedPaymentAmount" type="number" class="form-control" placeholder="Revised Payment Amount" />
+                        <input v-model="revisedPaymentAmount" type="number" class="form-control" placeholder="Revised Payment Amount" />
                       </div>
                   </div>
                   <button v-if="adRequest.status === 'negotiating'" @click="updateStatus('negotiating')" class="btn btn-success me-2 w-25">Update Negotiation</button> 

@@ -192,7 +192,7 @@ const SponsorAdRequest = {
         return;
       }
       try {
-        const res = await fetch(`/api/user/all`);
+        const res = await fetch(`/api/users/all`);
         const data = await res.json();
         this.influencers = data;
       } catch (error) {

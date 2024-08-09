@@ -23,7 +23,7 @@ const SponsorCampaignDetails = {
         <div class='card'>
           <p class="card-header"> Active Ad Requests</p>
           <div class="card-body">
-            <div v-if="adRequests.length === 0">
+            <div v-if="adRequests.length == 0">
                 <h4>No ad requests found.</h4>
             </div>
             <div v-else class="table-responsive">
@@ -111,7 +111,7 @@ const SponsorCampaignDetails = {
         const res = await fetch(`/api/ad-request/c/${campaignId}`);
         this.adRequests = await res.json();
 
-        const resInfluencers = await fetch(`/api/user/all`);
+        const resInfluencers = await fetch(`/api/users/all`);
         this.influencers = await resInfluencers.json();
       } catch (error) {
         window.triggerToast(error, "danger");

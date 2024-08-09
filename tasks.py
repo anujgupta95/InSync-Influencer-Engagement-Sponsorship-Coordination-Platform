@@ -3,7 +3,7 @@ from celery import shared_task
 from flask import jsonify, make_response, render_template
 import flask_excel as excel
 from models import Role, User, Campaign, UserRoles
-from extensions.helpers import send_email
+from extensions.helpers import send_report
 from datetime import datetime as dt, timedelta
 from env import LOGIN_INACTIVITY_HOURS
 
@@ -12,7 +12,7 @@ def daily_reminder():
     inactive_users = []
     for user in User.query.all():
         if user.has_role('influencer') and (dt.now() - user.last_login_at) > timedelta(hours=LOGIN_INACTIVITY_HOURS):
-            send_email(user.email, 
+            send_report(to=user.email, 
                        subject=f"Hey {user.name}, Check the new exiciting campaigns!", 
                        message=f'''Hey {user.name},\n Checkout new campaigns and grab the deal before anyone else.''',
             )
@@ -28,7 +28,7 @@ def send_campaigns_csv(user_id, to):
 
     with open(file_path, 'wb') as file:
         file.write(csv_out.data)
-    send_email(to, subject="Campaigns CSV", message="PFA campaigns CSV", file=file_path)
+    send_report(to, subject="Campaigns CSV", message="PFA campaigns CSV", file=file_path)
     return {"message": "CSV Sent Successfully"}, 200
 
 @shared_task()
@@ -79,6 +79,6 @@ def monthly_report(time):
         with open(report_path, 'w') as file:
             file.write(html)
 
-        send_email(to=sponsor.email, subject='Monthly Report', message='Please find the attached monthly report.',file=report_path)
+        send_report(to=sponsor.email, subject='Monthly Report', message='Please find the attached monthly report.',file=report_path)
 
     return {"message": "Monthly Reports sent successfully"}, 200   
