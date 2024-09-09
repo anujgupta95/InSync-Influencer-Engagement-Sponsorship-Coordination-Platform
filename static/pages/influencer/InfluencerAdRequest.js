@@ -34,10 +34,15 @@ const InfluencerAdRequest = {
                         <input v-model="revisedPaymentAmount" type="number" class="form-control" placeholder="Revised Payment Amount" />
                       </div>
                   </div>
-                  <button v-if="adRequest.status === 'negotiating'" @click="updateStatus('negotiating')" class="btn btn-success me-2 w-25">Update Negotiation</button> 
-                  <button v-if="['pending', 'negotiating'].includes(adRequest.status)"  @click="updateStatus('accepted')" class="btn btn-success me-2 w-25">Accept Ad Request</button>
-                  <button v-if="['pending', 'negotiating'].includes(adRequest.status)"  @click="updateStatus('rejected')" class="btn btn-danger me-2 w-25">Reject Ad Request</button>
-                  <button v-if="adRequest.status === 'pending'" @click="updateStatus('negotiating')" class="btn btn-warning me-2 w-25">Start Negotiation</button> 
+                  <template v-if="adRequest.user_id === 0 || adRequest.user_id == null">
+                    <button v-if="adRequest.status === 'pending'"  @click="updateStatus('accepted')" class="btn btn-success me-2 w-25">Join Ad Request</button>
+                  </template>
+                  <template v-else>
+                    <button v-if="adRequest.status === 'negotiating'" @click="updateStatus('negotiating')" class="btn btn-success me-2 w-25">Update Negotiation</button> 
+                    <button v-if="['pending', 'negotiating'].includes(adRequest.status)"  @click="updateStatus('accepted')" class="btn btn-success me-2 w-25">Accept Ad Request</button>
+                    <button v-if="['pending', 'negotiating'].includes(adRequest.status)"  @click="updateStatus('rejected')" class="btn btn-danger me-2 w-25">Reject Ad Request</button>
+                    <button v-if="adRequest.status === 'pending'" @click="updateStatus('negotiating')" class="btn btn-warning me-2 w-25">Start Negotiation</button> 
+                  </template>
                 </div>
             </div>
           </div>
@@ -93,6 +98,7 @@ const InfluencerAdRequest = {
         if (data.id) {
           window.triggerToast(data.message, "success");
           router.replace(`/influencer/ad-request/${data.id}`);
+          this.$route.params.id = data.id;
         }
       } catch (error) {
         console.error(error, error);

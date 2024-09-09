@@ -1,0 +1,13 @@
+APP_SECRET_KEY = "should-not-be-exposeds"
+SQLALCHEMY_DATABASE_URI = 'sqlite:///db.sqlite3'
+SECURITY_PASSWORD_SALT = 'some-salting-to-secure'
+ADMIN_EMAIL = 'admin@app.com'
+ADMIN_PASSWORD = '12345'
+PUBLIC_ROLES = ['sponsor', 'influencer']
+ALL_ROLES = ['admin', 'sponsor', 'influencer']
+VISIBILITY_TYPES = ('public', 'private')
+REQUEST_STATUS = ('pending', 'accepted', 'rejected', 'negotiating')
+LOGIN_INACTIVITY_HOURS = 24
+DISCORD_WEBHOOK_URL = ""
+SENDER_EMAIL_MAIL = "youremail@gmail.com"
+SENDER_EMAIL_PASSWORD = "" #App password, will be generated after enabling 2FA
