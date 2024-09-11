@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check if the virtual environment directory exists
-source "./.venv/bin/activate"
+# source "./.venv/bin/activate"
 mkdir -p ./downloads
 redis-server &
 celery -A app:celery_app worker -l INFO &
