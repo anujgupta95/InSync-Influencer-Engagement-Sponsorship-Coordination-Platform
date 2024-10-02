@@ -1,4 +1,4 @@
-# MAD-II - Influencer Engagement & Sponsorship Coordination Platform - V2
+# Influencer Engagement & Sponsorship Coordination Platform
 It's a platform to connect Sponsors and Influencers so that sponsors can get their product/service advertised and influencers can get monetary benefit.
 
 ## Frameworks used
